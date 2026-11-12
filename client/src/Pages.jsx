@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowRight, ImagePlus, PackagePlus, Plus, ShieldCheck, ShoppingCart, Sparkles, Trash2, Upload, Check, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Bell, ChevronRight, CircleCheck, CircleDollarSign, Clock, Flag, ImagePlus, LayoutGrid, Package, PackageCheck, PackagePlus, Plus, Receipt, RotateCcw, ScrollText, Search, ShieldCheck, ShoppingCart, Sparkles, Tag, Trash2, Upload, Users, Check, X } from 'lucide-react';
 import { api } from './api';
 import { useApp, LOCS, money, ago, Thumb } from './lib.jsx';
 
@@ -140,12 +140,13 @@ export function Orders() {
 export function Post({ id }) {
   const { me, go, toast, run } = useApp();
   const [meta, setMeta] = useState({ categories: [], conditions: [] }), [files, setFiles] = useState([]);
-  const [f, setF] = useState({ title: '', category: '', price: '', condition: '', percentNew: 90, location: LOCS[0], phone: '', description: '', imageUrls: '' });
+  const [done, setDone] = useState(false);
+  const [f, setF] = useState({ title: '', category: '', price: '', condition: '', percentNew: 90, location: LOCS[0], phone: '', description: '', imageUrls: '', originalPrice: '', shipping: true });
   useEffect(() => {
     api('/categories').then(m => { setMeta(m); setF(x => ({ ...x, category: x.category || m.categories[0], condition: x.condition || m.conditions[1] })); }).catch(() => {});
     if (id) api('/my/products').then(l => {
       const p = l.find(x => x._id === id);
-      if (p) setF({ title: p.title, category: p.category, price: p.price, condition: p.condition, percentNew: p.percentNew || 90, location: p.location || LOCS[0], phone: p.phone || '', description: p.description || '', imageUrls: (p.images || []).join('\n') });
+      if (p) setF({ title: p.title, category: p.category, price: p.price, condition: p.condition, percentNew: p.percentNew || 90, location: p.location || LOCS[0], phone: p.phone || '', description: p.description || '', imageUrls: (p.images || []).join('\n'), originalPrice: p.originalPrice || '', shipping: p.shipping !== false });
     });
   }, [id]);
   const set = k => e => setF({ ...f, [k]: e.target.value });
@@ -157,7 +158,7 @@ export function Post({ id }) {
       files.forEach(x => fd.append('images', x));
       await api(id ? '/products/' + id : '/products', { method: id ? 'PUT' : 'POST', form: fd });
       toast(me.role === 'admin' ? 'Đã đăng tin thành công!' : 'Đã gửi tin, chờ Quản trị viên duyệt');
-      go('mine');
+      if (id) go('mine'); else { setDone(true); scrollTo({ top: 0, behavior: 'smooth' }); }
     });
   };
   if (!me) return <Need />;
@@ -166,7 +167,20 @@ export function Post({ id }) {
       <Crumb items={['Mua sắm', id ? 'Sửa tin' : 'Đăng bán']} />
       <div className="create-heading">
         <div><div className="eyebrow section-eyebrow">Bắt đầu một vòng đời mới</div><h1>{id ? 'Sửa tin đăng' : 'Đăng món đồ của bạn'}</h1><p>Chỉ vài phút để món đồ tốt tìm được chủ nhân tiếp theo.</p></div>
+        <div className="create-step"><span>01</span><div><strong>Thông tin sản phẩm</strong><small>Bước 1 / 1</small></div></div>
       </div>
+      {done ? (
+        <section className="listing-success">
+          <div className="success-icon"><CircleCheck size={31} /></div>
+          <div className="eyebrow section-eyebrow">Tin đăng đã sẵn sàng</div>
+          <h2>{f.title || 'Món đồ của bạn'} đang chờ chủ mới</h2>
+          <p>{me.role === 'admin' ? 'Tin đã hiển thị trên sàn.' : 'Tin đã được gửi và đang chờ Quản trị viên duyệt trước khi hiển thị.'}</p>
+          <div className="success-actions">
+            <button className="button button-green" onClick={() => go('mine')}>Quản lý tin đăng <ArrowRight size={16} /></button>
+            <button className="button button-outline" onClick={() => { setDone(false); setFiles([]); setF(x => ({ ...x, title: '', price: '', originalPrice: '', description: '', imageUrls: '' })); }}>Đăng món khác</button>
+          </div>
+        </section>
+      ) : (
       <form className="listing-form" onSubmit={submit}>
         <div className="listing-form-main">
           <section className="form-card">
@@ -200,7 +214,11 @@ export function Post({ id }) {
                 <label className="form-field"><span>Giá bán <b>*</b></span><div className="input-suffix"><input required type="number" min="0" step="1000" value={f.price} onChange={set('price')} placeholder="0" /><span>đ</span></div></label>
                 <label className="form-field"><span>Khu vực</span><select value={f.location} onChange={set('location')}>{LOCS.map(c => <option key={c}>{c}</option>)}</select></label>
               </div>
-              <label className="form-field"><span>Số điện thoại liên hệ</span><input type="tel" value={f.phone} onChange={set('phone')} placeholder={me.phone || '09xxxxxxxx'} /></label>
+              <div className="form-field-row">
+                <label className="form-field"><span>Giá mua mới <small>(không bắt buộc)</small></span><div className="input-suffix"><input type="number" min="0" step="1000" value={f.originalPrice} onChange={set('originalPrice')} placeholder="0" /><span>đ</span></div></label>
+                <label className="form-field"><span>Số điện thoại liên hệ</span><input type="tel" value={f.phone} onChange={set('phone')} placeholder={me.phone || '09xxxxxxxx'} /></label>
+              </div>
+              <label className="check-row shipping-check"><input type="checkbox" checked={f.shipping} onChange={e => setF({ ...f, shipping: e.target.checked })} /><span>Đồng ý hỗ trợ vận chuyển</span><small>Người mua sẽ trao đổi chi tiết với bạn.</small></label>
             </div>
           </section>
           <div className="form-footer"><p><ShieldCheck size={15} /> Đăng tin miễn phí. Tin sẽ được Admin duyệt trước khi hiển thị.</p><button className="button button-green form-submit" type="submit">{id ? 'Lưu thay đổi' : 'Đăng tin ngay'} <ArrowRight size={16} /></button></div>
@@ -214,6 +232,7 @@ export function Post({ id }) {
           </div>
         </aside>
       </form>
+      )}
     </main>
   );
 }
@@ -258,9 +277,9 @@ const LB = { pending: ['Chờ Admin duyệt', 'status-pending'], approved: ['Đa
 export function Mine() {
   const { me, setMe, go, toast, run } = useApp();
   const [l, setL] = useState(null), [tab, setTab] = useState('all'), [view, setView] = useState('products');
-  const [pf, setPf] = useState({ name: '', phone: '', email: '', address: '' });
+  const [pf, setPf] = useState({ name: '', phone: '', email: '', address: '', bio: '' });
   const load = () => api('/my/products').then(setL).catch(e => toast(e.message));
-  useEffect(() => { if (me) { load(); setPf({ name: me.name || '', phone: me.phone || '', email: me.email || '', address: me.address || '' }); } }, [me]);
+  useEffect(() => { if (me) { load(); setPf({ name: me.name || '', phone: me.phone || '', email: me.email || '', address: me.address || '', bio: me.bio || '' }); } }, [me]);
   const act = (fn, ok) => run(async () => { await fn(); ok && toast(ok); load(); });
   const saveProfile = e => { e.preventDefault(); run(async () => { setMe(await api('/me', { method: 'PUT', body: pf })); toast('Đã cập nhật hồ sơ cá nhân'); }); };
   if (!me) return <Need />;
@@ -281,9 +300,9 @@ export function Mine() {
       </div>
       {view === 'orders' ? <SellerOrders /> : (<>
       <section className="manage-metrics">
-        <div><small>Tổng tin đăng</small><strong>{list.length}</strong></div>
-        <div><small>Đang bán</small><strong>{cnt('approved')}</strong></div>
-        <div><small>Đã bán</small><strong>{cnt('sold')}</strong></div>
+        <div><span className="metric-icon"><PackagePlus size={17} /></span><small>Tổng tin đăng</small><strong>{list.length}</strong></div>
+        <div><span className="metric-icon"><ShieldCheck size={17} /></span><small>Đang bán</small><strong>{cnt('approved')}</strong></div>
+        <div><span className="metric-icon"><Check size={17} /></span><small>Đã bán</small><strong>{cnt('sold')}</strong></div>
       </section>
 
       <section className="manage-list-card">
@@ -310,6 +329,12 @@ export function Mine() {
         {l && !shown.length && <p className="muted-note" style={{ textAlign: 'center', padding: '36px 0' }}>Chưa có tin nào trong mục này.</p>}
       </section>
 
+      <section className="manage-help">
+        <span><RotateCcw size={19} /></span>
+        <div><strong>Món đồ chưa tìm được chủ mới?</strong><p>Đẩy tin VIP hoặc cập nhật ảnh để món đồ được chú ý hơn.</p></div>
+        <button onClick={() => setTab('approved')}>Xem tin đang bán <ArrowRight size={15} /></button>
+      </section>
+
       </>)}
 
       <form className="form-card" style={{ marginTop: 22 }} onSubmit={saveProfile}>
@@ -323,6 +348,7 @@ export function Mine() {
             <label className="form-field"><span>Email</span><input value={pf.email} onChange={pset('email')} /></label>
             <label className="form-field"><span>Địa chỉ</span><input value={pf.address} onChange={pset('address')} /></label>
           </div>
+          <label className="form-field"><span>Giới thiệu bản thân <small>(hiện ở trang hồ sơ, tối đa 300 ký tự)</small></span><textarea rows={3} maxLength={300} value={pf.bio} onChange={pset('bio')} placeholder="Vài dòng về bạn và những món đồ bạn bán…" /></label>
           <div><button className="button button-green" type="submit">Lưu hồ sơ</button></div>
         </div>
       </form>
@@ -330,21 +356,55 @@ export function Mine() {
   );
 }
 
-/* ===== 5. ADMIN ===== */
+/* ===== 5. ADMIN (giao diện Marketplace Ops) ===== */
+const ADM_NAV = [
+  ['stats', 'Tổng quan', LayoutGrid], ['pending', 'Duyệt tin đăng', PackageCheck], ['products', 'Tất cả tin', Package],
+  ['users', 'Người dùng', Users], ['reports', 'Báo cáo vi phạm', Flag], ['categories', 'Danh mục', Tag],
+  ['orders', 'Đơn hàng', Receipt], ['logs', 'Nhật ký', ScrollText]
+];
+const ADM_HEAD = {
+  stats: ['Điều hành nền tảng', 'Tổng quan', 'Theo dõi sức khỏe cộng đồng và hoạt động trên sàn.'],
+  pending: ['Kiểm duyệt', 'Duyệt tin đăng', 'Duyệt hoặc từ chối các tin mới gửi lên.'],
+  products: ['Quản lý nội dung', 'Tất cả tin đăng', 'Quản lý toàn bộ tin trên sàn, bật VIP hoặc gỡ tin vi phạm.'],
+  users: ['Cộng đồng', 'Người dùng', 'Khóa, mở khóa tài khoản và phân quyền quản trị.'],
+  reports: ['An toàn cộng đồng', 'Báo cáo vi phạm', 'Xử lý các báo cáo từ người dùng.'],
+  categories: ['Cấu trúc sàn', 'Danh mục', 'Thêm, đổi tên hoặc xóa danh mục sản phẩm.'],
+  orders: ['Giao dịch', 'Đơn hàng', 'Theo dõi mọi đơn hàng trên sàn (chỉ xem).'],
+  logs: ['Truy vết', 'Nhật ký hoạt động', 'Lịch sử mọi thao tác trên hệ thống.']
+};
+const compactMoney = n => n >= 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' tr' : money(n);
+
 export function Admin() {
   const { me, go, toast, run } = useApp();
-  const [tab, setTab] = useState('stats'), [d, setD] = useState(null), [newCat, setNewCat] = useState('');
+  const [tab, setTab] = useState('stats'), [d, setD] = useState(null), [s, setS] = useState(null);
+  const [pend, setPend] = useState([]), [lg, setLg] = useState([]), [newCat, setNewCat] = useState(''), [q, setQ] = useState('');
   const EP = { stats: '/admin/stats', pending: '/admin/pending', products: '/admin/products', categories: '/admin/categories', orders: '/admin/orders', reports: '/admin/reports', users: '/admin/users', logs: '/admin/logs' };
-  const load = () => api(EP[tab]).then(setD).catch(e => toast(e.message));
+  const load = () => {
+    api(EP[tab]).then(setD).catch(e => toast(e.message));
+    api('/admin/stats').then(setS).catch(() => {});
+    if (tab === 'stats') {
+      api('/admin/pending').then(x => setPend(x.slice(0, 5))).catch(() => {});
+      api('/admin/logs').then(x => setLg(x.slice(0, 5))).catch(() => {});
+    }
+  };
   useEffect(() => { if (me && me.role === 'admin') load(); }, [me, tab]);
   const act = (fn, msg) => run(async () => { await fn(); msg && toast(msg); load(); });
+  const approve = id => act(() => api('/admin/products/' + id, { method: 'PATCH', body: { status: 'approved' } }), 'Đã duyệt tin!');
   const reject = id => {
     const reason = prompt('Nhập lý do từ chối tin đăng này:', 'Thông tin hoặc hình ảnh chưa hợp lệ');
     if (reason) act(() => api('/admin/products/' + id, { method: 'PATCH', body: { status: 'rejected', rejectReason: reason } }), 'Đã từ chối tin đăng');
   };
+
+  if (!me && localStorage.getItem('tk')) return <main className="page-wrap"><div className="loading-note">Đang tải…</div></main>;
   if (!me || me.role !== 'admin') return <main className="page-wrap"><div className="empty-state"><div className="empty-state-icon"><ShieldCheck size={24} /></div><h2>Chỉ dành cho Quản trị viên</h2><p>Bạn không có quyền truy cập trang này.</p></div></main>;
-  const TABS = [['stats', 'Thống kê'], ['pending', 'Duyệt tin'], ['products', 'Tất cả tin'], ['categories', 'Danh mục'], ['orders', 'Đơn hàng'], ['reports', 'Báo cáo'], ['users', 'Người dùng'], ['logs', 'Nhật ký']];
+
+  const ql = q.trim().toLowerCase();
+  const hit = (...v) => !ql || v.join(' ').toLowerCase().includes(ql);
   const arr = Array.isArray(d) ? d : [];
+  const badge = { pending: s?.pending || 0, reports: s?.reports || 0 };
+  const [eyebrow, title, sub] = ADM_HEAD[tab];
+  const ini = (me.name || 'A').trim().split(/\s+/).map(w => w[0]).slice(-2).join('').toUpperCase();
+
   const Item = ({ p, children }) => (
     <div className="admin-line">
       <div className="admin-thumb" onClick={() => go('p/' + p._id)}><Thumb p={p} /></div>
@@ -352,116 +412,167 @@ export function Admin() {
     </div>
   );
 
-  return (
-    <main className="page-wrap manage-page">
-      <Crumb items={['Tài khoản', 'Quản trị']} />
-      <Heading eyebrow="Bảng điều khiển" title="Quản trị hệ thống" sub="Duyệt tin, quản lý danh mục, đơn hàng, báo cáo và người dùng." />
-      <section className="manage-list-card">
-        <div className="manage-toolbar"><div className="manage-tabs admin-tabs">{TABS.map(([k, n]) => <button key={k} className={tab === k ? 'active' : ''} onClick={() => { setD(null); setTab(k); }}>{n}</button>)}</div></div>
-        <div className="admin-section">
-          {!d ? <div className="loading-note">Đang tải dữ liệu…</div>
+  const body = !d ? <div className="loading-note">Đang tải dữ liệu…</div>
 
-          : tab === 'stats' ? (
-            <div className="admin-metrics">
-              <div><small>Người dùng</small><strong>{d.users}</strong></div>
-              <div><small>Tổng tin đăng</small><strong>{d.products}</strong></div>
-              <div><small>Tin chờ duyệt</small><strong className="warn">{d.pending}</strong></div>
-              <div><small>Tin đang bán</small><strong>{d.approved}</strong></div>
-              <div><small>Tổng đơn hàng</small><strong>{d.orders}</strong></div>
-              <div><small>Đơn hoàn tất</small><strong>{d.completedOrders}</strong></div>
-              <div><small>Doanh số hoàn tất</small><strong style={{ fontSize: 20 }}>{money(d.revenue)}</strong></div>
-              <div><small>Báo cáo đang mở</small><strong className="bad">{d.reports}</strong></div>
-            </div>)
-
-          : tab === 'pending' ? (<>
-              <h3>Tin đang chờ duyệt ({arr.length})</h3>
-              {arr.map(p => (
-                <Item key={p._id} p={p}>
-                  <strong>{p.title}</strong>
-                  <p>{money(p.price)} · {p.category} · {p.condition} (Mới {p.percentNew || 90}%) · Người đăng: <b>{p.seller?.name}</b> (@{p.seller?.username})</p>
-                  <p>{p.description}</p>
-                  <div className="row-actions" style={{ marginTop: 8 }}>
-                    <button className="button button-green button-sm" onClick={() => act(() => api('/admin/products/' + p._id, { method: 'PATCH', body: { status: 'approved' } }), 'Đã duyệt tin!')}><Check size={12} /> Duyệt hiển thị</button>
-                    <button className="button button-danger button-sm" onClick={() => reject(p._id)}><X size={12} /> Từ chối</button>
-                  </div>
-                </Item>
-              ))}</>)
-
-          : tab === 'products' ? (<>
-              <h3>Tất cả sản phẩm ({arr.length})</h3>
-              {arr.map(p => (
-                <Item key={p._id} p={p}>
-                  <strong>{p.title}</strong> {p.vip && <Pill cls="status-pending">VIP</Pill>}
-                  <p>{money(p.price)} · Trạng thái: <b>{p.status}</b> · {p.category} · Người bán: @{p.seller?.username}</p>
-                  <div className="row-actions" style={{ marginTop: 8 }}>
-                    {p.status !== 'approved' && <button className="button button-green button-sm" onClick={() => act(() => api('/admin/products/' + p._id, { method: 'PATCH', body: { status: 'approved' } }), 'Đã duyệt')}>Duyệt</button>}
-                    {p.status !== 'rejected' && <button className="button button-outline button-sm" onClick={() => reject(p._id)}>Từ chối</button>}
-                    <button className="button button-amber button-sm" onClick={() => act(() => api('/admin/products/' + p._id, { method: 'PATCH', body: { vip: !p.vip } }), 'Đã cập nhật VIP')}>{p.vip ? 'Tắt VIP' : '★ Bật VIP'}</button>
-                    <button className="button button-danger button-sm" onClick={() => confirm('Xóa vĩnh viễn sản phẩm này?') && act(() => api('/products/' + p._id, { method: 'DELETE' }), 'Đã xóa sản phẩm')}><Trash2 size={12} /></button>
-                  </div>
-                </Item>
-              ))}</>)
-
-          : tab === 'categories' ? (<>
-              <h3>Danh mục sản phẩm</h3>
-              <div className="admin-form">
-                <input placeholder="Nhập tên danh mục mới…" value={newCat} onChange={e => setNewCat(e.target.value)} />
-                <button className="button button-green" onClick={() => act(async () => { await api('/admin/categories', { method: 'POST', body: { name: newCat } }); setNewCat(''); }, 'Đã thêm danh mục')}><Plus size={14} /> Thêm</button>
+    : tab === 'stats' ? (<>
+      <div className="adm-metrics">
+        <div className="adm-metric"><div><small>Tổng giá trị giao dịch</small><strong>{compactMoney(d.revenue)}</strong><em>{d.completedOrders} đơn hoàn tất</em></div><span className="adm-ico tone-green"><CircleDollarSign size={20} /></span><i>Hoàn tất</i></div>
+        <div className="adm-metric"><div><small>Tin đăng hoạt động</small><strong>{d.approved.toLocaleString('vi-VN')}</strong><em>Tổng {d.products} tin đăng</em></div><span className="adm-ico tone-sand"><Package size={20} /></span><i>Trên toàn sàn</i></div>
+        <div className="adm-metric"><div><small>Thành viên</small><strong>{d.users.toLocaleString('vi-VN')}</strong><em>Tài khoản đã đăng ký</em></div><span className="adm-ico tone-coral"><Users size={20} /></span><i>Cộng đồng</i></div>
+        <div className="adm-metric"><div><small>Chờ đội ngũ xem xét</small><strong>{d.pending}</strong><em>Tin chờ duyệt · {d.reports} báo cáo</em></div><span className="adm-ico tone-gold"><Clock size={20} /></span><i>Cần xử lý</i></div>
+      </div>
+      <div className="adm-grid">
+        <section className="adm-card">
+          <div className="adm-card-head"><div><small>KIỂM DUYỆT</small><h2>Tin đăng cần chú ý</h2><p>Ưu tiên xử lý các tin mới gửi lên.</p></div><button className="adm-link" onClick={() => setTab('pending')}>Xem hàng đợi <ChevronRight size={15} /></button></div>
+          {pend.length ? <div className="adm-table">
+            <div className="adm-row adm-row-head"><span>Tin đăng</span><span>Người bán</span><span>Giá bán</span><span>Trạng thái</span><span>Thao tác</span></div>
+            {pend.map(p => (
+              <div className="adm-row" key={p._id}>
+                <div className="adm-prod"><div className="adm-thumb" onClick={() => go('p/' + p._id)}><Thumb p={p} /></div><div><strong>{p.title}</strong><small>{p.category} · {p.condition}</small></div></div>
+                <div className="adm-seller"><strong>{p.seller?.name}</strong><small>{p.location || '—'}</small></div>
+                <b>{money(p.price)}</b>
+                <span className="adm-pill"><i />Chờ duyệt</span>
+                <div className="adm-actions"><button className="adm-ok" onClick={() => approve(p._id)}><Check size={14} /> Duyệt</button><button className="adm-no" onClick={() => reject(p._id)} aria-label="Từ chối"><X size={15} /></button></div>
               </div>
-              {arr.map(c => (
-                <div className="admin-line" key={c._id}>
-                  <div className="grow"><strong>{c.name}</strong></div>
-                  <div className="row-actions">
-                    <button className="button button-outline button-sm" onClick={() => { const name = prompt('Đổi tên danh mục:', c.name); if (name && name.trim()) act(() => api('/admin/categories/' + c._id, { method: 'PUT', body: { name } }), 'Đã đổi tên danh mục'); }}>Sửa tên</button>
-                    <button className="button button-danger button-sm" onClick={() => confirm(`Xóa danh mục "${c.name}"?`) && act(() => api('/admin/categories/' + c._id, { method: 'DELETE' }), 'Đã xóa danh mục')}><Trash2 size={12} /></button>
-                  </div>
-                </div>
-              ))}</>)
-
-          : tab === 'orders' ? (<>
-              <h3>Toàn bộ đơn hàng ({arr.length}) — chỉ xem</h3>
-              {arr.map(o => (
-                <div className="order-card" key={o._id} style={{ marginBottom: 12 }}>
-                  <div className="order-head"><strong>Đơn #{String(o._id).slice(-6)}</strong><Pill cls={ST_CLASS[o.status]}>{ST[o.status]}</Pill></div>
-                  <div className="order-meta">Người mua: <b>{o.buyer?.name}</b> (@{o.buyer?.username}) → Người bán: <b>{o.seller?.name}</b> (@{o.seller?.username})</div>
-                  {o.items?.map((i, k) => <div className="order-item" key={k}><span>{i.title}</span><b>{money(i.price)}</b></div>)}
-                  <div className="order-total">Tổng: {money(o.total)} · {o.payment?.toUpperCase()}</div>
-                  <p className="muted-note" style={{ marginTop: 8 }}>Admin chỉ theo dõi đơn. Người bán là người xác nhận, giao hàng và hoàn tất đơn.</p>
-                </div>
-              ))}</>)
-
-          : tab === 'reports' ? (<>
-              <h3>Báo cáo vi phạm đang mở ({arr.length})</h3>
-              {arr.map(r => (
-                <div className="admin-line" key={r._id}>
-                  <div className="grow"><strong>Lý do: {r.reason}</strong><p>Tin: <b>{r.product ? r.product.title : '(Đã xóa)'}</b> · Báo cáo bởi @{r.by?.username} {r.note}</p></div>
-                  <div className="row-actions">
-                    {r.product && <button className="button button-outline button-sm" onClick={() => go('p/' + r.product._id)}>Xem tin</button>}
-                    <button className="button button-danger button-sm" onClick={() => act(() => api('/admin/reports/' + r._id, { method: 'PATCH', body: { action: 'remove' } }), 'Đã gỡ tin vi phạm')}>Gỡ tin</button>
-                    <button className="button button-outline button-sm" onClick={() => act(() => api('/admin/reports/' + r._id, { method: 'PATCH', body: { action: 'dismiss' } }), 'Đã bỏ qua báo cáo')}>Bỏ qua</button>
-                  </div>
-                </div>
-              ))}</>)
-
-          : tab === 'users' ? (<>
-              <h3>Người dùng ({arr.length})</h3>
-              {arr.map(u => (
-                <div className="admin-line" key={u._id}>
-                  <div className="grow"><strong>{u.name}</strong> <span className="muted-note">@{u.username} · {u.phone || 'Chưa có SĐT'}</span>
-                    <p>Vai trò: <b>{u.role.toUpperCase()}</b> · <Pill cls={u.banned ? 'status-rejected' : ''}>{u.banned ? 'Đã khóa' : 'Hoạt động'}</Pill></p></div>
-                  {u._id !== me.id && <div className="row-actions">
-                    <button className="button button-outline button-sm" onClick={() => act(() => api(`/admin/users/${u._id}/role`, { method: 'PATCH', body: { role: u.role === 'admin' ? 'user' : 'admin' } }), 'Đã đổi vai trò')}>{u.role === 'admin' ? 'Hạ xuống User' : 'Cấp quyền Admin'}</button>
-                    <button className={'button button-sm ' + (u.banned ? 'button-green' : 'button-danger')} onClick={() => act(() => api(`/admin/users/${u._id}/ban`, { method: 'PATCH', body: { banned: !u.banned } }), u.banned ? 'Đã mở khóa' : 'Đã khóa tài khoản')}>{u.banned ? 'Mở khóa' : 'Khóa TK'}</button>
-                  </div>}
-                </div>
-              ))}</>)
-
-          : (<>
-              <h3>Nhật ký hoạt động</h3>
-              {arr.map(l => <div className="log-line" key={l._id}>{new Date(l.createdAt).toLocaleString('vi-VN')} · <b>@{l.actor}</b> · <code>{l.action}</code> · {l.ref} {l.data ? JSON.stringify(l.data) : ''}</div>)}</>)}
-          {d && Array.isArray(d) && !d.length && <p className="muted-note" style={{ textAlign: 'center', padding: '30px 0' }}>Không có dữ liệu trong mục này.</p>}
+            ))}
+          </div> : <p className="muted-note adm-empty">Không có tin nào đang chờ duyệt.</p>}
+        </section>
+        <div className="adm-side-col">
+          <section className="adm-card adm-quality">
+            <div className="adm-card-head"><div><small>GIAO DỊCH</small><h2>Hiệu quả đơn hàng</h2></div><span className="adm-ico tone-green"><ShieldCheck size={19} /></span></div>
+            <div className="adm-big">{d.orders ? Math.round(d.completedOrders / d.orders * 100) : 0}%</div>
+            <p>Đơn hàng được hoàn tất trên tổng số đơn</p>
+            <div className="adm-bar"><span style={{ width: (d.orders ? d.completedOrders / d.orders * 100 : 0) + '%' }} /></div>
+            <div className="adm-kv"><span>Tổng đơn hàng</span><b>{d.orders}</b></div>
+            <div className="adm-kv"><span>Báo cáo đang mở</span><b>{d.reports}</b></div>
+          </section>
+          <section className="adm-card">
+            <div className="adm-card-head"><div><small>NHẬT KÝ</small><h2>Hoạt động gần đây</h2></div><button className="adm-link" onClick={() => setTab('logs')}>Tất cả <ChevronRight size={15} /></button></div>
+            {lg.length ? lg.map(l => <div className="adm-log" key={l._id}><b>@{l.actor}</b> · <code>{l.action}</code><small>{ago(l.createdAt)}</small></div>) : <p className="muted-note adm-empty">Chưa có hoạt động.</p>}
+          </section>
         </div>
-      </section>
-    </main>
+      </div>
+    </>)
+
+    : <section className="adm-card adm-pad">{
+      tab === 'pending' ? (<>
+        <h3>Tin đang chờ duyệt ({arr.filter(p => hit(p.title, p.seller?.name, p.seller?.username)).length})</h3>
+        {arr.filter(p => hit(p.title, p.seller?.name, p.seller?.username)).map(p => (
+          <Item key={p._id} p={p}>
+            <strong>{p.title}</strong>
+            <p>{money(p.price)} · {p.category} · {p.condition} (Mới {p.percentNew || 90}%) · Người đăng: <b>{p.seller?.name}</b> (@{p.seller?.username})</p>
+            <p>{p.description}</p>
+            <div className="row-actions" style={{ marginTop: 8 }}>
+              <button className="button button-green button-sm" onClick={() => approve(p._id)}><Check size={12} /> Duyệt hiển thị</button>
+              <button className="button button-danger button-sm" onClick={() => reject(p._id)}><X size={12} /> Từ chối</button>
+            </div>
+          </Item>
+        ))}</>)
+
+      : tab === 'products' ? (<>
+        <h3>Tất cả sản phẩm ({arr.filter(p => hit(p.title, p.seller?.username)).length})</h3>
+        {arr.filter(p => hit(p.title, p.seller?.username)).map(p => (
+          <Item key={p._id} p={p}>
+            <strong>{p.title}</strong> {p.vip && <Pill cls="status-pending">VIP</Pill>}
+            <p>{money(p.price)} · Trạng thái: <b>{p.status}</b> · {p.category} · Người bán: @{p.seller?.username}</p>
+            <div className="row-actions" style={{ marginTop: 8 }}>
+              {p.status !== 'approved' && <button className="button button-green button-sm" onClick={() => approve(p._id)}>Duyệt</button>}
+              {p.status !== 'rejected' && <button className="button button-outline button-sm" onClick={() => reject(p._id)}>Từ chối</button>}
+              <button className="button button-amber button-sm" onClick={() => act(() => api('/admin/products/' + p._id, { method: 'PATCH', body: { vip: !p.vip } }), 'Đã cập nhật VIP')}>{p.vip ? 'Tắt VIP' : '★ Bật VIP'}</button>
+              <button className="button button-danger button-sm" onClick={() => confirm('Xóa vĩnh viễn sản phẩm này?') && act(() => api('/products/' + p._id, { method: 'DELETE' }), 'Đã xóa sản phẩm')}><Trash2 size={12} /></button>
+            </div>
+          </Item>
+        ))}</>)
+
+      : tab === 'categories' ? (<>
+        <h3>Danh mục sản phẩm</h3>
+        <div className="admin-form">
+          <input placeholder="Nhập tên danh mục mới…" value={newCat} onChange={e => setNewCat(e.target.value)} />
+          <button className="button button-green" onClick={() => act(async () => { await api('/admin/categories', { method: 'POST', body: { name: newCat } }); setNewCat(''); }, 'Đã thêm danh mục')}><Plus size={14} /> Thêm</button>
+        </div>
+        {arr.filter(c => hit(c.name)).map(c => (
+          <div className="admin-line" key={c._id}>
+            <div className="grow"><strong>{c.name}</strong></div>
+            <div className="row-actions">
+              <button className="button button-outline button-sm" onClick={() => { const name = prompt('Đổi tên danh mục:', c.name); if (name && name.trim()) act(() => api('/admin/categories/' + c._id, { method: 'PUT', body: { name } }), 'Đã đổi tên danh mục'); }}>Sửa tên</button>
+              <button className="button button-danger button-sm" onClick={() => confirm('Xóa danh mục "' + c.name + '"?') && act(() => api('/admin/categories/' + c._id, { method: 'DELETE' }), 'Đã xóa danh mục')}><Trash2 size={12} /></button>
+            </div>
+          </div>
+        ))}</>)
+
+      : tab === 'orders' ? (<>
+        <h3>Toàn bộ đơn hàng ({arr.length}) — chỉ xem</h3>
+        {arr.map(o => (
+          <div className="order-card" key={o._id} style={{ marginBottom: 12 }}>
+            <div className="order-head"><strong>Đơn #{String(o._id).slice(-6)}</strong><Pill cls={ST_CLASS[o.status]}>{ST[o.status]}</Pill></div>
+            <div className="order-meta">Người mua: <b>{o.buyer?.name}</b> (@{o.buyer?.username}) → Người bán: <b>{o.seller?.name}</b> (@{o.seller?.username})</div>
+            {o.items?.map((i, k) => <div className="order-item" key={k}><span>{i.title}</span><b>{money(i.price)}</b></div>)}
+            <div className="order-total">Tổng: {money(o.total)} · {o.payment?.toUpperCase()}</div>
+          </div>
+        ))}</>)
+
+      : tab === 'reports' ? (<>
+        <h3>Báo cáo vi phạm đang mở ({arr.length})</h3>
+        {arr.map(r => (
+          <div className="admin-line" key={r._id}>
+            <div className="grow"><strong>Lý do: {r.reason}</strong><p>Tin: <b>{r.product ? r.product.title : '(Đã xóa)'}</b> · Báo cáo bởi @{r.by?.username} {r.note}</p></div>
+            <div className="row-actions">
+              {r.product && <button className="button button-outline button-sm" onClick={() => go('p/' + r.product._id)}>Xem tin</button>}
+              <button className="button button-danger button-sm" onClick={() => act(() => api('/admin/reports/' + r._id, { method: 'PATCH', body: { action: 'remove' } }), 'Đã gỡ tin vi phạm')}>Gỡ tin</button>
+              <button className="button button-outline button-sm" onClick={() => act(() => api('/admin/reports/' + r._id, { method: 'PATCH', body: { action: 'dismiss' } }), 'Đã bỏ qua báo cáo')}>Bỏ qua</button>
+            </div>
+          </div>
+        ))}</>)
+
+      : tab === 'users' ? (<>
+        <h3>Người dùng ({arr.filter(u => hit(u.name, u.username)).length})</h3>
+        {arr.filter(u => hit(u.name, u.username)).map(u => (
+          <div className="admin-line" key={u._id}>
+            <div className="grow"><strong>{u.name}</strong> <span className="muted-note">@{u.username} · {u.phone || 'Chưa có SĐT'}</span>
+              <p>Vai trò: <b>{u.role.toUpperCase()}</b> · <Pill cls={u.banned ? 'status-rejected' : ''}>{u.banned ? 'Đã khóa' : 'Hoạt động'}</Pill></p></div>
+            {u._id !== me.id && <div className="row-actions">
+              <button className="button button-outline button-sm" onClick={() => act(() => api('/admin/users/' + u._id + '/role', { method: 'PATCH', body: { role: u.role === 'admin' ? 'user' : 'admin' } }), 'Đã đổi vai trò')}>{u.role === 'admin' ? 'Hạ xuống User' : 'Cấp quyền Admin'}</button>
+              <button className={'button button-sm ' + (u.banned ? 'button-green' : 'button-danger')} onClick={() => act(() => api('/admin/users/' + u._id + '/ban', { method: 'PATCH', body: { banned: !u.banned } }), u.banned ? 'Đã mở khóa' : 'Đã khóa tài khoản')}>{u.banned ? 'Mở khóa' : 'Khóa TK'}</button>
+            </div>}
+          </div>
+        ))}</>)
+
+      : (<>
+        <h3>Nhật ký hoạt động</h3>
+        {arr.map(l => <div className="log-line" key={l._id}>{new Date(l.createdAt).toLocaleString('vi-VN')} · <b>@{l.actor}</b> · <code>{l.action}</code> · {l.ref} {l.data ? JSON.stringify(l.data) : ''}</div>)}</>)
+    }
+      {Array.isArray(d) && !d.length && <p className="muted-note adm-empty">Không có dữ liệu trong mục này.</p>}
+    </section>;
+
+  return (
+    <div className="adm-shell">
+      <aside className="adm-side">
+        <div className="adm-brand"><span className="brand-symbol"><span>C</span><i /></span><div><strong>Chợ Đồ Cũ</strong><small>MARKETPLACE OPS</small></div><em>ADMIN</em></div>
+        <div className="adm-nav-label">KHÔNG GIAN ĐIỀU HÀNH</div>
+        <nav aria-label="Menu quản trị">
+          {ADM_NAV.map(([k, n, Icon]) => (
+            <button key={k} className={tab === k ? 'active' : ''} onClick={() => { setD(null); setQ(''); setTab(k); }}>
+              <Icon size={19} strokeWidth={1.6} /><span>{n}</span>{badge[k] > 0 && <b>{badge[k]}</b>}
+            </button>
+          ))}
+        </nav>
+        <div className="adm-user"><span className="adm-avatar">{ini}</span><div><strong>{me.name}</strong><small>Quản trị viên</small></div><button onClick={() => go('home')} aria-label="Về marketplace"><ArrowLeft size={18} /></button></div>
+      </aside>
+      <div className="adm-main">
+        <header className="adm-top">
+          <div className="adm-crumb"><strong>Chợ Đồ Cũ</strong><ChevronRight size={14} /><span>Quản trị</span></div>
+          <label className="adm-search"><Search size={17} /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Tìm tin đăng, người bán…" aria-label="Tìm kiếm" /></label>
+          <button className="adm-bell" onClick={() => setTab('pending')} aria-label="Tin chờ duyệt"><Bell size={19} />{badge.pending + badge.reports > 0 && <i />}</button>
+          <span className="adm-avatar">{ini}</span>
+        </header>
+        <div className="adm-content">
+          <div className="adm-heading">
+            <div><div className="eyebrow section-eyebrow">{eyebrow}</div><h1>{title}</h1><p>{sub}</p></div>
+            <button className="adm-outline" onClick={() => go('home')}>Về marketplace <ArrowUpRight size={15} /></button>
+          </div>
+          {body}
+        </div>
+      </div>
+    </div>
   );
 }

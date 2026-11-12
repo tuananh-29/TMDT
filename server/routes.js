@@ -15,7 +15,7 @@ const up = multer({
 const bad = (m, s = 400) => { throw Object.assign(new Error(m), { status: s }); };
 const log = (actor, action, ref, data) => M.Log.create({ actor, action, ref: String(ref), data }).catch(() => {});
 const sign = u => jwt.sign({ id: u._id, role: u.role }, SECRET(), { expiresIn: '7d' });
-const pub = u => ({ id: u._id, username: u.username, email: u.email, name: u.name, phone: u.phone, address: u.address, role: u.role, banned: u.banned });
+const pub = u => ({ id: u._id, username: u.username, email: u.email, name: u.name, phone: u.phone, address: u.address, bio: u.bio || '', role: u.role, banned: u.banned });
 const mine = (p, u) => String(p.seller._id || p.seller) === String(u._id);
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -52,7 +52,9 @@ const avg = async id => {
 router.get('/categories', w(async (_, res) => {
   const cats = await M.Category.find({ active: true }).sort('name');
   const names = cats.length ? cats.map(c => c.name) : M.DEFAULT_CATEGORIES;
-  res.json({ categories: names, categoryList: cats, conditions: M.CONDITIONS });
+  const agg = await M.Product.aggregate([{ $match: { status: 'approved' } }, { $group: { _id: '$category', n: { $sum: 1 } } }]);
+  const counts = Object.fromEntries(agg.map(a => [a._id, a.n]));
+  res.json({ categories: names, categoryList: cats, conditions: M.CONDITIONS, counts });
 }));
 
 // ===== Auth =====
@@ -90,6 +92,7 @@ router.put('/me', auth, w(async (req, res) => {
   if (req.body.phone !== undefined) req.user.phone = String(req.body.phone).trim();
   if (req.body.email !== undefined) req.user.email = String(req.body.email).trim();
   if (req.body.address !== undefined) req.user.address = String(req.body.address).trim();
+  if (req.body.bio !== undefined) req.user.bio = String(req.body.bio).trim().slice(0, 300);
   await req.user.save();
   res.json(pub(req.user));
 }));
@@ -98,7 +101,11 @@ router.get('/users/:username', w(async (req, res) => {
   const u = await M.User.findOne({ username: req.params.username.toLowerCase() });
   if (!u) bad('Không tìm thấy người dùng', 404);
   const reviews = await M.Review.find({ to: u._id }).sort('-createdAt').limit(30).populate('from', 'username name');
-  res.json({ user: { username: u.username, name: u.name, phone: u.phone, joined: u.createdAt }, ...await avg(u._id), reviews });
+  const [sold, good] = await Promise.all([
+    M.Product.countDocuments({ seller: u._id, status: 'sold' }),
+    M.Review.countDocuments({ to: u._id, rating: { $gte: 4 } })
+  ]);
+  res.json({ user: { username: u.username, name: u.name, phone: u.phone, bio: u.bio || '', hasEmail: !!u.email, joined: u.createdAt }, sold, good, ...await avg(u._id), reviews });
 }));
 
 // ===== Products =====
@@ -110,7 +117,9 @@ const pick = b => ({
   condition: b.condition,
   percentNew: b.percentNew !== undefined ? Number(b.percentNew) : 90,
   location: b.location,
-  phone: b.phone && String(b.phone).trim()
+  phone: b.phone && String(b.phone).trim(),
+  originalPrice: b.originalPrice ? Number(b.originalPrice) : undefined,
+  shipping: b.shipping !== undefined ? String(b.shipping) === 'true' : undefined
 });
 
 router.get('/products', w(async (req, res) => {

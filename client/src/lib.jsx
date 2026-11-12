@@ -56,8 +56,9 @@ export function ProductCard({ p, compact = false }) {
     <article className={'product-card' + (compact ? ' product-card-compact' : '')}>
       <button className="product-card-image" onClick={() => go('p/' + p._id)} aria-label={'Xem ' + p.title}>
         <Thumb p={p} />
-        <span className="product-condition">Mới {p.percentNew || 90}%</span>
+        <span className="product-condition">{p.condition}</span>
         {p.vip && <span className="product-vip">★ VIP</span>}
+        {p.shipping && <span className="product-shipping">Có vận chuyển</span>}
       </button>
       <button
         className={'favorite-button' + (isFav ? ' is-favorite' : '')}
@@ -69,7 +70,10 @@ export function ProductCard({ p, compact = false }) {
       </button>
       <div className="product-card-content">
         <button className="product-title" onClick={() => go('p/' + p._id)}>{p.title}</button>
-        <div className="product-price-row"><strong>{money(p.price)}</strong></div>
+        <div className="product-price-row">
+          <strong>{money(p.price)}</strong>
+          {p.originalPrice > p.price && <span className="product-old-price">{money(p.originalPrice)}</span>}
+        </div>
         <div className="product-card-meta">
           <span><MapPin size={13} />{p.location || 'Toàn quốc'}</span>
           <span>{ago(p.createdAt)}</span>

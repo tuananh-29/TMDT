@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   ArrowRight, ArrowUpRight, ArrowLeft, BadgeCheck, Check, ChevronDown, ChevronRight, CircleCheck, Flag, Heart, LogOut,
   Leaf, MapPin, Menu, PackageCheck, Phone, Plus, Recycle, Search, ShieldCheck, ShoppingBag,
@@ -61,7 +61,7 @@ function Home() {
               <button className="category-tile" key={c} onClick={() => pickCategory(c)}>
                 <span className="category-icon" style={{ backgroundColor: CAT_COLORS[i % CAT_COLORS.length] }}><Icon size={23} strokeWidth={1.7} /></span>
                 <span className="category-name">{c}</span>
-                <span className="category-count">Xem tất cả</span>
+                <span className="category-count">{(meta.counts?.[c] || 0).toLocaleString('vi-VN')} món</span>
                 <ChevronRight className="category-arrow" size={15} />
               </button>
             );
@@ -143,9 +143,10 @@ function Browse() {
       <div className="browse-toolbar">
         <button className="filter-mobile" onClick={() => setFilterOpen(!filterOpen)}><SlidersHorizontal size={16} /> Bộ lọc</button>
         <div className="filter-chips">
-          <button className="filter-chip active"><SlidersHorizontal size={14} /> Bộ lọc <span>{activeCount}</span></button>
-          {f.condition && <button className="filter-chip" onClick={() => set({ condition: '' })}>{f.condition} <X size={12} /></button>}
-          {f.location && <button className="filter-chip" onClick={() => set({ location: '' })}>{f.location} <X size={12} /></button>}
+          <button className="filter-chip active" onClick={() => setFilterOpen(!filterOpen)}><SlidersHorizontal size={14} /> Bộ lọc <span>{activeCount}</span></button>
+          <button className="filter-chip" onClick={() => setFilterOpen(true)}>{f.condition || 'Tình trạng'} <ChevronDown size={14} /></button>
+          <button className="filter-chip" onClick={() => setFilterOpen(true)}>{(f.min || f.max) ? 'Khoảng giá ✓' : 'Khoảng giá'} <ChevronDown size={14} /></button>
+          <button className="filter-chip" onClick={() => setFilterOpen(true)}>{f.location || 'Khu vực'} <ChevronDown size={14} /></button>
         </div>
         <label className="sort-control">Sắp xếp
           <select value={f.sort} onChange={e => set({ sort: e.target.value })}>{SORTS.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select>
@@ -157,7 +158,11 @@ function Browse() {
         <aside className="filter-sidebar" style={filterOpen ? { display: 'block' } : undefined}>
           <div className="filter-sidebar-head"><strong>Bộ lọc</strong><button onClick={reset}>Đặt lại</button></div>
           <div className="filter-group"><h3>Danh mục</h3>
-            {['', ...meta.categories].map(c => <button key={c || 'all'} className={'filter-category' + (cat === c ? ' selected' : '')} onClick={() => pickCategory(c)}>{c || 'Tất cả'}</button>)}
+            {['', ...meta.categories].map(c => (
+              <button key={c || 'all'} className={'filter-category' + (cat === c ? ' selected' : '')} onClick={() => pickCategory(c)}>
+                {c || 'Tất cả'}<span>{(c ? (meta.counts?.[c] || 0) : Object.values(meta.counts || {}).reduce((a, b) => a + b, 0)).toLocaleString('vi-VN')}</span>
+              </button>
+            ))}
           </div>
           <div className="filter-group"><h3>Giá bán</h3>
             <div className="price-inputs">
@@ -262,8 +267,10 @@ function Detail({ id }) {
         <aside className="detail-panel">
           <div className="detail-status"><span className="live-dot" /> {p.status === 'sold' ? 'Đã bán' : p.status === 'reserved' ? 'Đang có khách đặt' : p.status === 'pending' ? 'Đang chờ duyệt' : 'Đang được rao bán'} <span className="detail-listed">• {ago(p.createdAt)}</span></div>
           <h1>{p.title}</h1>
-          <div className="detail-price">{money(p.price)}</div>
-          {p.vip && <div className="detail-saving">★ Tin VIP</div>}
+          <div className="detail-price">{money(p.price)}{p.originalPrice > p.price && <span>{money(p.originalPrice)}</span>}</div>
+          {p.originalPrice > p.price
+            ? <div className="detail-saving">Tiết kiệm {Math.round((1 - p.price / p.originalPrice) * 100)}% so với mua mới</div>
+            : p.vip && <div className="detail-saving">★ Tin VIP</div>}
 
           <div className="seller-panel">
             <Avatar name={s.name} size={42} />
@@ -310,7 +317,7 @@ function Detail({ id }) {
 
 /* ================= TRANG NGƯỜI BÁN ================= */
 function User({ name }) {
-  const { go, toast } = useApp();
+  const { go, toast, me } = useApp();
   const [u, setU] = useState(null), [l, setL] = useState([]), [tab, setTab] = useState('Đang bán');
   useEffect(() => {
     setU(null);
@@ -318,9 +325,12 @@ function User({ name }) {
     api('/products?seller=' + name).then(x => setL(x.items)).catch(() => {});
   }, [name]);
   if (!u) return <main className="page-wrap"><div className="loading-note">Đang tải…</div></main>;
+  const own = !!me && me.username === u.user.username;
   return (
     <main className="page-wrap profile-page">
-      <div className="breadcrumb"><button onClick={() => go('home')}>Trang chủ</button><span>/</span><strong>Người bán</strong></div>
+      {own
+        ? <div className="breadcrumb"><span>Tài khoản</span><span>/</span><strong>Hồ sơ cá nhân</strong></div>
+        : <div className="breadcrumb"><button onClick={() => go('home')}>Trang chủ</button><span>/</span><strong>Người bán</strong></div>}
       <section className="profile-cover"><div className="profile-cover-pattern" /><span className="profile-cover-label"><ShieldCheck size={15} /> Cộng đồng Chợ Đồ Cũ</span></section>
       <section className="profile-intro">
         <div className="profile-avatar-wrap"><Avatar name={u.user.name} size={96} /><span className="verified-badge"><Check size={12} /></span></div>
@@ -329,13 +339,27 @@ function User({ name }) {
           <p>@{u.user.username} <span>·</span> Thành viên từ {new Date(u.user.joined).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })}</p>
           <div className="profile-rating"><Star size={15} fill="currentColor" /><strong>{u.count ? u.avg : '—'}</strong><span>({u.count} đánh giá)</span></div>
         </div>
+        {own && <div className="profile-actions">
+          <button className="button button-outline" onClick={() => go('mine')}>Quản lý tin đăng</button>
+          <button className="button button-green" onClick={() => go('post')}>Đăng món mới</button>
+        </div>}
       </section>
       <div className="profile-stats">
+        <div><strong>{u.sold}</strong><span>Món đồ đã bán</span></div>
+        <div><strong>{u.good}</strong><span>Đánh giá tốt</span></div>
         <div><strong>{l.length}</strong><span>Món đang bán</span></div>
         <div><strong>{u.count ? u.avg : '—'}</strong><span>Điểm đánh giá</span></div>
-        <div><strong>{u.count}</strong><span>Lượt đánh giá</span></div>
-        <div><strong>{u.user.phone ? '✓' : '—'}</strong><span>Có số điện thoại</span></div>
       </div>
+      <section className="profile-about">
+        <div>
+          <div className="eyebrow section-eyebrow">Một chút về mình</div>
+          <h2>Mình tin món đồ tốt xứng đáng có thêm một vòng đời.</h2>
+          {u.user.bio
+            ? <p>{u.user.bio}</p>
+            : own && <p>Bạn chưa viết phần giới thiệu. Thêm ở Kênh người bán → Hồ sơ của tôi.</p>}
+        </div>
+        {(u.user.phone || u.user.hasEmail) && <div className="profile-promise"><span><ShieldCheck size={18} /></span><div><strong>Có thông tin liên hệ</strong><small>{u.user.phone && u.user.hasEmail ? 'Đã cung cấp số điện thoại & email' : u.user.phone ? 'Đã cung cấp số điện thoại' : 'Đã cung cấp email'}</small></div></div>}
+      </section>
       <section className="section-block profile-products">
         <div className="section-heading"><div><div className="eyebrow section-eyebrow">Góc nhỏ của {u.user.name}</div><h2>Cửa hàng</h2></div></div>
         <div className="profile-tabs">{['Đang bán', 'Đánh giá'].map(t => <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>{t}{t === 'Đang bán' ? ` (${l.length})` : ` (${u.count})`}</button>)}</div>
@@ -415,8 +439,14 @@ function Auth() {
 export default function App() {
   const [me, setMe] = useState(null), [route, setRoute] = useState(location.hash.slice(1) || 'home'), [msg, setMsg] = useState('');
   const [q, setQ] = useState(''), [qInput, setQInput] = useState(''), [cat, setCat] = useState('');
-  const [meta, setMeta] = useState({ categories: [], conditions: [] });
+  const [meta, setMeta] = useState({ categories: [], conditions: [], counts: {} });
   const [menuOpen, setMenuOpen] = useState(false), [cartCount, setCartCount] = useState(0);
+  const searchRef = useRef(null);
+  useEffect(() => {
+    const k = e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); searchRef.current?.focus(); } };
+    addEventListener('keydown', k);
+    return () => removeEventListener('keydown', k);
+  }, []);
   const [favs, setFavs] = useState(() => { try { return JSON.parse(localStorage.getItem('favs') || '[]'); } catch { return []; } });
 
   useEffect(() => {
@@ -461,6 +491,11 @@ export default function App() {
 
   const ctx = useMemo(() => ({ me, setMe, go, toast, run, need, q, setQ, cat, pickCategory, meta, favs, toggleFav, refreshCart }), [me, q, cat, meta, favs]);
 
+  const toastEl = msg && <div className="toast-message" role="status"><span><Heart size={15} fill="currentColor" /></span>{msg}<button onClick={() => setMsg('')} aria-label="Đóng"><X size={14} /></button></div>;
+
+  // Trang quản trị dùng bố cục riêng (sidebar), không có header/footer của sàn
+  if (r === 'admin' && me?.role === 'admin') return <Ctx.Provider value={ctx}><div className="marketplace-app adm-root"><Admin />{toastEl}</div></Ctx.Provider>;
+
   return (
     <Ctx.Provider value={ctx}>
       <div className="marketplace-app">
@@ -473,13 +508,14 @@ export default function App() {
             <button className="brand-lockup" onClick={() => go('home')} aria-label="Chợ Đồ Cũ — về trang chủ"><Brand /></button>
             <form className="header-search" onSubmit={submitSearch}>
               <Search size={18} />
-              <input value={qInput} onChange={e => setQInput(e.target.value)} placeholder="Tìm điện thoại, xe đạp, sách cũ…" aria-label="Tìm kiếm sản phẩm" />
+              <input ref={searchRef} value={qInput} onChange={e => setQInput(e.target.value)} placeholder="Tìm điện thoại, xe đạp, sách cũ…" aria-label="Tìm kiếm sản phẩm" />
+              <kbd>⌘ K</kbd>
               <button type="submit" aria-label="Tìm kiếm"><ArrowRight size={16} /></button>
             </form>
             <div className="header-actions">
               <button className="header-icon-button" onClick={() => go('fav')} aria-label={`Yêu thích, ${favs.length} món`}><Heart size={19} /><span className="action-label">Yêu thích</span>{favs.length > 0 && <i>{favs.length}</i>}</button>
               <button className="header-icon-button" onClick={() => go('cart')} aria-label={`Giỏ hàng, ${cartCount} món`}><ShoppingCart size={19} /><span className="action-label">Giỏ hàng</span>{cartCount > 0 && <i>{cartCount}</i>}</button>
-              <button className="header-icon-button" onClick={() => go(me ? 'mine' : 'auth')}><span className="user-round"><UserRound size={17} /></span><span className="action-label">{me ? me.name : 'Đăng nhập'}</span></button>
+              <button className="header-icon-button" onClick={() => go(me ? 'u/' + me.username : 'auth')}><span className="user-round"><UserRound size={17} /></span><span className="action-label">{me ? me.name : 'Đăng nhập'}</span></button>
               {me && <button className="header-icon-button" onClick={logout} aria-label="Thoát"><LogOut size={18} /><span className="action-label">Thoát</span></button>}
               <button className="header-sell-button" onClick={() => need() && go('post')}><Plus size={16} /> Đăng bán</button>
             </div>
@@ -498,6 +534,7 @@ export default function App() {
               <button onClick={() => go('fav')}><Heart size={16} /> Yêu thích</button>
               <button onClick={() => go('cart')}><ShoppingCart size={16} /> Giỏ hàng</button>
               <button onClick={() => need() && go('orders')}><PackageCheck size={16} /> Đơn hàng</button>
+              {me && <button onClick={() => go('u/' + me.username)}><UserRound size={16} /> Hồ sơ cá nhân</button>}
               <button onClick={() => need() && go('mine')}><ShoppingBag size={16} /> Kênh người bán</button>
               {me?.role === 'admin' && <button onClick={() => go('admin')}><ShieldCheck size={16} /> Quản trị</button>}
               <button onClick={() => (me ? logout() : go('auth'))}><UserRound size={16} /> {me ? 'Đăng xuất' : 'Đăng nhập'}</button>
@@ -515,7 +552,7 @@ export default function App() {
             </div>
             <div className="footer-links">
               <div><strong>Khám phá</strong><button onClick={() => pickCategory('')}>Mua sắm</button><button onClick={() => need() && go('post')}>Đăng bán</button><button onClick={() => go('fav')}>Yêu thích</button></div>
-              <div><strong>Tài khoản</strong><button onClick={() => go(me ? 'mine' : 'auth')}>{me ? 'Hồ sơ của tôi' : 'Đăng nhập'}</button><button onClick={() => need() && go('orders')}>Đơn hàng</button><button onClick={() => go('cart')}>Giỏ hàng</button></div>
+              <div><strong>Tài khoản</strong><button onClick={() => go(me ? 'u/' + me.username : 'auth')}>{me ? 'Hồ sơ của tôi' : 'Đăng nhập'}</button><button onClick={() => need() && go('orders')}>Đơn hàng</button><button onClick={() => go('cart')}>Giỏ hàng</button></div>
             </div>
             <div className="footer-newsletter">
               <strong>Ở lại cùng chúng tôi</strong><p>Nhận tin về những món đồ hay ho mỗi tuần.</p>
@@ -529,10 +566,10 @@ export default function App() {
           <button className={r === 'home' ? 'active' : ''} onClick={() => go('home')}><span>⌂</span>Trang chủ</button>
           <button className={r === 'browse' ? 'active' : ''} onClick={() => pickCategory('')}><Search size={19} />Khám phá</button>
           <button className="mobile-post-button" onClick={() => need() && go('post')}><span><Plus size={18} /></span>Đăng bán</button>
-          <button className={r === 'mine' || r === 'auth' ? 'active' : ''} onClick={() => go(me ? 'mine' : 'auth')}><UserRound size={19} />Cá nhân</button>
+          <button className={(r === 'u' && me && id === me.username) || r === 'mine' || r === 'auth' ? 'active' : ''} onClick={() => go(me ? 'u/' + me.username : 'auth')}><UserRound size={19} />Cá nhân</button>
         </nav>
 
-        {msg && <div className="toast-message" role="status"><span><Heart size={15} fill="currentColor" /></span>{msg}<button onClick={() => setMsg('')} aria-label="Đóng"><X size={14} /></button></div>}
+        {toastEl}
       </div>
     </Ctx.Provider>
   );
