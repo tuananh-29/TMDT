@@ -59,7 +59,7 @@ Client đã được thiết kế lại theo giao diện của `market-pulse`: t
 
 ---
 
-## 🛡️ Trang Admin mới (NO MALL Admin Console)
+## 🛡️ Trang Admin mới (Admin Console)
 
 Chạy `npm run dev` trong `client`, mở **http://localhost:5173/admin.html** và đăng nhập `admin` / `admin123`.
 - Giao diện: sidebar tối, header tìm kiếm (⌘K), dashboard KPI + biểu đồ doanh thu 30 ngày.
