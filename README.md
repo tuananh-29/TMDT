@@ -56,3 +56,18 @@ Client đã được thiết kế lại theo giao diện của `market-pulse`: t
 - CSS nằm ở `client/src/style.css` (CSS thuần, không cần Tailwind).
 - Icon dùng `lucide-react` → chạy lại `npm install` trong thư mục `client`.
 - Mục **Yêu thích** (trái tim) lưu ở trình duyệt (localStorage), chưa có API phía server.
+
+---
+
+## 🛡️ Trang Admin mới (NO MALL Admin Console)
+
+Chạy `npm run dev` trong `client`, mở **http://localhost:5173/admin.html** và đăng nhập `admin` / `admin123`.
+- Giao diện: sidebar tối, header tìm kiếm (⌘K), dashboard KPI + biểu đồ doanh thu 30 ngày.
+- Mục có dữ liệu thật: Kiểm duyệt sản phẩm, Đơn hàng, Đánh giá, Nhà bán, Người dùng, Tài chính (GMV), Khiếu nại (báo cáo), Tồn kho, Danh mục, Nhật ký.
+- Phí sàn: tỷ lệ hoa hồng chỉ để ước tính (lưu ở trình duyệt). Voucher: chưa có backend.
+- Server thêm `GET/DELETE /api/admin/reviews`.
+
+### Người mua = người bán
+- Không còn "Kênh người bán" / "Quản trị" trên thanh menu. Bấm **ảnh đại diện** ở góc phải header để mở menu: Hồ sơ, Đơn tôi mua, Đơn khách đặt mua, Tin đăng của tôi, Trang quản trị (chỉ admin), Đăng xuất. Chưa đăng nhập thì hiện Đăng nhập / Đăng ký.
+- Trang Hồ sơ (`#mine/profile|products|buy|sell`) gom: thông tin cá nhân, tin đăng, đơn mua, đơn bán.
+- Nút **Đăng bán** ở header cho bất kỳ người dùng nào.

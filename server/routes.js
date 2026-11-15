@@ -488,4 +488,16 @@ admin.get('/logs', w(async (req, res) => {
   res.json(await M.Log.find().sort('-createdAt').limit(200));
 }));
 
+// 10. Quản lý Đánh giá (xem / xóa đánh giá vi phạm)
+admin.get('/reviews', w(async (req, res) => {
+  res.json(await M.Review.find().sort('-createdAt').limit(200).populate('from to', 'username name'));
+}));
+
+admin.delete('/reviews/:id', w(async (req, res) => {
+  const r = await M.Review.findByIdAndDelete(req.params.id);
+  if (!r) bad('Không tìm thấy đánh giá', 404);
+  log(req.user.username, 'review_delete', r._id);
+  res.json({ ok: 1 });
+}));
+
 module.exports = router;

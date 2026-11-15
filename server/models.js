@@ -15,6 +15,7 @@ exports.User = m.model('User', new S({
   name: String,
   phone: String,
   address: String,
+  bio: { type: String, default: '' },
   passwordHash: { type: String, required: true },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   banned: { type: Boolean, default: false }
@@ -34,6 +35,8 @@ exports.Product = m.model('Product', new S({
   status: { type: String, enum: ['pending', 'approved', 'rejected', 'reserved', 'sold'], default: 'pending', index: true },
   rejectReason: { type: String, default: '' },
   reviewedBy: ref('User'),
+  originalPrice: { type: Number, min: 0 },
+  shipping: { type: Boolean, default: true },
   vip: { type: Boolean, default: false },
   vipUntil: Date
 }, t));

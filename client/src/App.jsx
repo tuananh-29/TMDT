@@ -1,12 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   ArrowRight, ArrowUpRight, ArrowLeft, BadgeCheck, Check, ChevronDown, ChevronRight, CircleCheck, Flag, Heart, LogOut,
   Leaf, MapPin, Menu, PackageCheck, Phone, Plus, Recycle, Search, ShieldCheck, ShoppingBag,
-  ShoppingCart, SlidersHorizontal, Sparkles, Star, Shirt, Truck, UserRound, X
+  ShoppingCart, SlidersHorizontal, ClipboardList, Store, Sparkles, Star, Shirt, Truck, UserRound, X
 } from 'lucide-react';
 import { api } from './api';
 import { Ctx, useApp, LOCS, money, ago, imgUrl, stars, Avatar, ProductCard, catIcon, CAT_COLORS } from './lib.jsx';
-import { Cart, Orders, Post, Mine, Admin } from './Pages.jsx';
+import { Cart, Post, Mine } from './Pages.jsx';
 
 const SORTS = [['new', 'Mới nhất'], ['lo', 'Giá thấp đến cao'], ['hi', 'Giá cao đến thấp']];
 const Brand = ({ className = '' }) => (
@@ -411,6 +411,54 @@ function Auth() {
   );
 }
 
+/* ================= MENU ẢNH ĐẠI DIỆN ================= */
+function AdminRedirect() {
+  useEffect(() => { location.replace('/admin.html'); }, []);
+  return null;
+}
+
+function UserMenu() {
+  const { me, go, logout, need } = useApp();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const esc = e => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', away); document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', esc); };
+  }, [open]);
+  const pick = fn => () => { setOpen(false); fn(); };
+  const Item = ({ icon: Icon, children, onClick, danger }) => (
+    <button role="menuitem" className={'um-item' + (danger ? ' um-danger' : '')} onClick={pick(onClick)}><Icon size={16} />{children}</button>
+  );
+  return (
+    <div className="user-menu" ref={ref}>
+      <button className="um-trigger" onClick={() => setOpen(o => !o)} aria-haspopup="menu" aria-expanded={open} aria-label="Tài khoản">
+        {me ? <Avatar name={me.name} size={34} /> : <span className="user-round"><UserRound size={18} /></span>}
+        <ChevronDown size={14} className={'um-caret' + (open ? ' up' : '')} />
+      </button>
+      {open && (
+        <div className="um-panel" role="menu">
+          {me ? (<>
+            <div className="um-head"><Avatar name={me.name} size={42} /><div><b>{me.name}</b><small>@{me.username}</small></div></div>
+            <Item icon={UserRound} onClick={() => go('mine/profile')}>Hồ sơ của tôi</Item>
+            <Item icon={PackageCheck} onClick={() => go('mine/buy')}>Đơn tôi mua</Item>
+            <Item icon={ClipboardList} onClick={() => go('mine/sell')}>Đơn khách đặt mua</Item>
+            <Item icon={Store} onClick={() => go('mine/products')}>Tin đăng của tôi</Item>
+            {me.role === 'admin' && <Item icon={ShieldCheck} onClick={() => window.open('/admin.html', '_blank')}>Trang quản trị</Item>}
+            <div className="um-sep" />
+            <Item icon={LogOut} danger onClick={logout}>Đăng xuất</Item>
+          </>) : (<>
+            <div className="um-head um-guest"><div><b>Chào bạn!</b><small>Đăng nhập để mua, bán và quản lý đơn.</small></div></div>
+            <Item icon={UserRound} onClick={() => go('auth')}>Đăng nhập / Đăng ký</Item>
+          </>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ================= KHUNG ỨNG DỤNG ================= */
 export default function App() {
   const [me, setMe] = useState(null), [route, setRoute] = useState(location.hash.slice(1) || 'home'), [msg, setMsg] = useState('');
@@ -451,15 +499,15 @@ export default function App() {
     : r === 'u' ? <User name={id} />
     : r === 'auth' ? <Auth />
     : r === 'cart' ? <Cart />
-    : r === 'orders' ? <Orders />
-    : r === 'mine' ? <Mine />
+    : r === 'orders' ? <Mine tab="buy" />
+    : r === 'mine' ? <Mine tab={id || 'products'} />
     : r === 'post' ? <Post id={id} key={id} />
-    : r === 'admin' ? <Admin />
+    : r === 'admin' ? <AdminRedirect />
     : r === 'fav' ? <Favorites />
     : r === 'browse' ? <Browse />
     : <Home />;
 
-  const ctx = useMemo(() => ({ me, setMe, go, toast, run, need, q, setQ, cat, pickCategory, meta, favs, toggleFav, refreshCart }), [me, q, cat, meta, favs]);
+  const ctx = useMemo(() => ({ me, setMe, go, toast, run, need, logout, q, setQ, cat, pickCategory, meta, favs, toggleFav, refreshCart }), [me, q, cat, meta, favs]);
 
   return (
     <Ctx.Provider value={ctx}>
@@ -479,8 +527,7 @@ export default function App() {
             <div className="header-actions">
               <button className="header-icon-button" onClick={() => go('fav')} aria-label={`Yêu thích, ${favs.length} món`}><Heart size={19} /><span className="action-label">Yêu thích</span>{favs.length > 0 && <i>{favs.length}</i>}</button>
               <button className="header-icon-button" onClick={() => go('cart')} aria-label={`Giỏ hàng, ${cartCount} món`}><ShoppingCart size={19} /><span className="action-label">Giỏ hàng</span>{cartCount > 0 && <i>{cartCount}</i>}</button>
-              <button className="header-icon-button" onClick={() => go(me ? 'mine' : 'auth')}><span className="user-round"><UserRound size={17} /></span><span className="action-label">{me ? me.name : 'Đăng nhập'}</span></button>
-              {me && <button className="header-icon-button" onClick={logout} aria-label="Thoát"><LogOut size={18} /><span className="action-label">Thoát</span></button>}
+              <UserMenu />
               <button className="header-sell-button" onClick={() => need() && go('post')}><Plus size={16} /> Đăng bán</button>
             </div>
             <button className="mobile-menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={menuOpen ? 'Đóng menu' : 'Mở menu'}>{menuOpen ? <X size={21} /> : <Menu size={21} />}</button>
@@ -490,16 +537,15 @@ export default function App() {
               <button className={r === 'home' ? 'nav-active' : ''} onClick={() => go('home')}>Trang chủ</button>
               <button className={r === 'browse' && !cat ? 'nav-active' : ''} onClick={() => pickCategory('')}>Mua sắm</button>
               {meta.categories.slice(0, 4).map(c => <button key={c} className={r === 'browse' && cat === c ? 'nav-active' : ''} onClick={() => pickCategory(c)}>{c}</button>)}
-              <button className={r === 'orders' ? 'nav-active' : ''} onClick={() => need() && go('orders')}>Đơn hàng</button>
-              {me?.role === 'admin' && <button className={r === 'admin' ? 'nav-active' : ''} onClick={() => go('admin')}>Quản trị</button>}
             </nav>
-            <button className="nav-sell-link" onClick={() => need() && go('mine')}><ShoppingBag size={15} /> Kênh người bán</button>
             <div className="mobile-nav-extras">
               <button onClick={() => go('fav')}><Heart size={16} /> Yêu thích</button>
               <button onClick={() => go('cart')}><ShoppingCart size={16} /> Giỏ hàng</button>
-              <button onClick={() => need() && go('orders')}><PackageCheck size={16} /> Đơn hàng</button>
-              <button onClick={() => need() && go('mine')}><ShoppingBag size={16} /> Kênh người bán</button>
-              {me?.role === 'admin' && <button onClick={() => go('admin')}><ShieldCheck size={16} /> Quản trị</button>}
+              <button onClick={() => go(me ? 'mine/profile' : 'auth')}><UserRound size={16} /> Hồ sơ của tôi</button>
+              <button onClick={() => need() && go('mine/buy')}><PackageCheck size={16} /> Đơn tôi mua</button>
+              <button onClick={() => need() && go('mine/sell')}><ClipboardList size={16} /> Đơn khách đặt</button>
+              <button onClick={() => need() && go('mine/products')}><ShoppingBag size={16} /> Tin đăng của tôi</button>
+              {me?.role === 'admin' && <button onClick={() => window.open('/admin.html', '_blank')}><ShieldCheck size={16} /> Trang quản trị</button>}
               <button onClick={() => (me ? logout() : go('auth'))}><UserRound size={16} /> {me ? 'Đăng xuất' : 'Đăng nhập'}</button>
             </div>
           </div>
@@ -515,7 +561,7 @@ export default function App() {
             </div>
             <div className="footer-links">
               <div><strong>Khám phá</strong><button onClick={() => pickCategory('')}>Mua sắm</button><button onClick={() => need() && go('post')}>Đăng bán</button><button onClick={() => go('fav')}>Yêu thích</button></div>
-              <div><strong>Tài khoản</strong><button onClick={() => go(me ? 'mine' : 'auth')}>{me ? 'Hồ sơ của tôi' : 'Đăng nhập'}</button><button onClick={() => need() && go('orders')}>Đơn hàng</button><button onClick={() => go('cart')}>Giỏ hàng</button></div>
+              <div><strong>Tài khoản</strong><button onClick={() => go(me ? 'mine/profile' : 'auth')}>{me ? 'Hồ sơ của tôi' : 'Đăng nhập'}</button><button onClick={() => need() && go('mine/buy')}>Đơn hàng</button><button onClick={() => go('cart')}>Giỏ hàng</button></div>
             </div>
             <div className="footer-newsletter">
               <strong>Ở lại cùng chúng tôi</strong><p>Nhận tin về những món đồ hay ho mỗi tuần.</p>
@@ -529,7 +575,7 @@ export default function App() {
           <button className={r === 'home' ? 'active' : ''} onClick={() => go('home')}><span>⌂</span>Trang chủ</button>
           <button className={r === 'browse' ? 'active' : ''} onClick={() => pickCategory('')}><Search size={19} />Khám phá</button>
           <button className="mobile-post-button" onClick={() => need() && go('post')}><span><Plus size={18} /></span>Đăng bán</button>
-          <button className={r === 'mine' || r === 'auth' ? 'active' : ''} onClick={() => go(me ? 'mine' : 'auth')}><UserRound size={19} />Cá nhân</button>
+          <button className={r === 'mine' || r === 'auth' ? 'active' : ''} onClick={() => go(me ? 'mine/profile' : 'auth')}><UserRound size={19} />Cá nhân</button>
         </nav>
 
         {msg && <div className="toast-message" role="status"><span><Heart size={15} fill="currentColor" /></span>{msg}<button onClick={() => setMsg('')} aria-label="Đóng"><X size={14} /></button></div>}
