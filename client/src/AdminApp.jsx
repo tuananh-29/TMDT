@@ -138,7 +138,7 @@ function Login({ onLogin }) {
   return (
     <div className="login-wrap">
       <form className="login-card" onSubmit={submit}>
-        <div className="brand brand-lg"><span className="brand-mark"><ShieldCheck size={22} /></span><div><b>NO MALL</b><small>ADMIN CONSOLE</small></div></div>
+        <div className="brand brand-lg"><span className="brand-mark"><ShieldCheck size={22} /></span><div><b>ADMIN</b><small>CONSOLE</small></div></div>
         <h1>Đăng nhập quản trị</h1>
         <p>Khu vực dành riêng cho Quản trị viên sàn.</p>
         <label>Tên đăng nhập<input autoFocus value={f.username} onChange={e => setF({ ...f, username: e.target.value })} placeholder="admin" /></label>
@@ -195,12 +195,12 @@ export default function AdminApp() {
   const badges = { pending: pendingCount, reports: data?.reports.length || 0 };
   const ctx = { data, q, act, go, toast, setAsk, me };
   const View = { dashboard: Dashboard, products: Products, orders: Orders, vouchers: Vouchers, fees: Fees, reviews: Reviews, sellerReq: SellerReq, sellers: Sellers, users: UsersView, finance: Finance, disputes: Disputes, inventory: Inventory, categories: Categories, logs: Logs }[page] || Dashboard;
-  const siteUrl = API_BASE.replace(':5000', ':5173');
+  const siteUrl = window.location.origin + '/';
 
   return (
     <div className="shell">
       <aside className={'side' + (navOpen ? ' open' : '')}>
-        <div className="brand side-brand"><span className="brand-mark"><ShieldCheck size={22} /></span><b>NO MALL</b><em>ADMIN</em></div>
+        <div className="brand side-brand"><span className="brand-mark"><ShieldCheck size={22} /></span><b>ADMIN</b><em>CONSOLE</em></div>
         <nav>
           {NAV.map(([group, items]) => (
             <div className="nav-group" key={group}>
@@ -254,7 +254,7 @@ function Dashboard({ data, go, reload, loading }) {
       <div>
         <span className="live"><i /> HỆ THỐNG GIÁM SÁT THỜI GIAN THỰC</span>
         <h1>Trung Tâm Điều Hành Toàn Sàn</h1>
-        <p>Giám sát chỉ số KPI, hiệu suất thương mại, giao dịch GMV và an toàn vận hành nền tảng NO MALL B2C.</p>
+        <p>Giám sát chỉ số KPI, hiệu suất thương mại, giao dịch GMV và an toàn vận hành nền tảng Chợ Đồ Cũ.</p>
       </div>
       <div className="hero-actions">
         <Btn icon={RefreshCw} onClick={reload} disabled={loading}>{loading ? 'Đang làm mới…' : 'Làm mới dữ liệu'}</Btn>
