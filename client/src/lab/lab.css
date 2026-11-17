@@ -1,0 +1,54 @@
+/* CSS riêng cho trang lab (không dùng Bootstrap, không đụng style.css của dự án) */
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #222; background: #fff; }
+.lab-nav { display: flex; gap: 20px; padding: 12px 24px; border-bottom: 1px solid #e5e5e5; }
+.lab-nav a { color: #0d6efd; text-decoration: none; }
+.lab-container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+.lab-row-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.lab-muted { color: #6c757d; font-size: 14px; margin: 0; }
+.lab-btn { display: inline-block; padding: 6px 14px; border-radius: 6px; border: 1px solid transparent; cursor: pointer; font-size: 14px; text-decoration: none; text-align: center; background: none; }
+.lab-btn-primary { background: #0d6efd; color: #fff; }
+.lab-btn-outline { border-color: #0d6efd; color: #0d6efd; }
+.lab-btn-danger { border-color: #dc3545; color: #dc3545; }
+.lab-block { display: block; width: 100%; margin-top: 8px; box-sizing: border-box; }
+.lab-price { color: #198754; font-weight: 700; margin: 6px 0; }
+
+.lab-grid-cat { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; text-align: center; }
+.lab-cat { padding: 12px; }
+.lab-cat h6 { margin: 8px 0 4px; font-size: 16px; }
+.lab-cat-img { width: 60px; height: 60px; object-fit: contain; }
+.lab-cat-emoji { font-size: 44px; line-height: 60px; height: 60px; }
+
+.lab-grid-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.lab-card { border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background: #fff; }
+.lab-link { color: inherit; text-decoration: none; }
+.lab-card-img { width: 100%; height: 180px; object-fit: cover; display: block; }
+.lab-card-body { padding: 12px; }
+
+.lab-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.lab-detail-img { width: 100%; max-height: 320px; object-fit: contain; border-radius: 8px; }
+.lab-thumbs { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
+.lab-thumb { width: 80px; height: 80px; object-fit: contain; cursor: pointer; border: 1px solid #ddd; border-radius: 6px; padding: 2px; }
+.lab-thumb-active { border-color: #0d6efd; }
+.lab-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+.lab-badge { background: #ffc107; padding: 2px 8px; border-radius: 4px; font-size: 13px; }
+.lab-qty { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.lab-qty input { width: 80px; padding: 6px; }
+.lab-actions { display: flex; gap: 8px; }
+.lab-tabs { display: flex; list-style: none; padding: 0; margin: 32px 0 0; border-bottom: 1px solid #ddd; }
+.lab-tabs button { border: 1px solid transparent; background: none; padding: 8px 16px; cursor: pointer; font-size: 15px; }
+.lab-tabs button.active { border-color: #ddd #ddd #fff; border-radius: 6px 6px 0 0; margin-bottom: -1px; background: #fff; }
+.lab-tab-body { border: 1px solid #ddd; border-top: 0; padding: 16px; }
+
+.lab-cart-row { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid #eee; }
+.lab-cart-img { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; }
+.lab-cart-info { flex: 1; }
+.lab-stepper { display: flex; align-items: center; gap: 10px; }
+.lab-stepper button { width: 28px; height: 28px; border: 1px solid #ccc; background: #fff; border-radius: 4px; cursor: pointer; }
+.lab-stepper button:disabled { opacity: .4; cursor: not-allowed; }
+.lab-cart-sum { width: 120px; text-align: right; font-weight: 600; }
+.lab-total { text-align: right; font-size: 20px; margin-top: 16px; }
+
+@media (max-width: 720px) {
+  .lab-detail { grid-template-columns: 1fr; }
+  .lab-cart-row { flex-wrap: wrap; }
+}

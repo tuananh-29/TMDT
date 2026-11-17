@@ -195,7 +195,7 @@ export default function AdminApp() {
   const badges = { pending: pendingCount, reports: data?.reports.length || 0 };
   const ctx = { data, q, act, go, toast, setAsk, me };
   const View = { dashboard: Dashboard, products: Products, orders: Orders, vouchers: Vouchers, fees: Fees, reviews: Reviews, sellerReq: SellerReq, sellers: Sellers, users: UsersView, finance: Finance, disputes: Disputes, inventory: Inventory, categories: Categories, logs: Logs }[page] || Dashboard;
-  const siteUrl = API_BASE.replace(':5000', ':5173');
+  const siteUrl = window.location.origin + '/';
 
   return (
     <div className="shell">
