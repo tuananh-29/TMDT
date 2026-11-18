@@ -1,15 +1,18 @@
 /* Menu ảnh đại diện (click avatar -> hồ sơ / đơn hàng / đăng xuất) */
 .user-menu { position: relative; }
 .um-trigger { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 8px 0 6px; border-radius: 999px; border: 1px solid rgba(0, 0, 0, .1); background: #fff; cursor: pointer; transition: .15s; }
-.um-trigger:hover, .um-trigger[aria-expanded="true"] { border-color: #2f6b4f; box-shadow: 0 0 0 3px rgba(47, 107, 79, .12); }
-.um-trigger .user-round { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #eef0e9; color: #2f6b4f; }
+.um-trigger:hover, .um-trigger[aria-expanded="true"] { border-color: #57CC99; box-shadow: 0 0 0 3px rgba(87, 204, 153, .22); }
+.um-trigger .user-round { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #eef0e9; color: #57CC99; }
 .um-caret { color: #777; transition: transform .2s; } .um-caret.up { transform: rotate(180deg); }
 .um-panel { position: absolute; right: 0; top: calc(100% + 10px); width: 270px; background: #fff; border: 1px solid rgba(0, 0, 0, .08); border-radius: 16px; padding: 8px; box-shadow: 0 18px 44px rgba(0, 0, 0, .16); z-index: 200; animation: um-pop .15s ease; }
 @keyframes um-pop { from { opacity: 0; transform: translateY(-6px); } }
 .um-head { display: flex; align-items: center; gap: 12px; padding: 12px 12px 14px; border-bottom: 1px solid rgba(0, 0, 0, .07); margin-bottom: 6px; }
 .um-head b { display: block; font-size: 15px; } .um-head small { color: #777; font-size: 12.5px; line-height: 1.4; }
-.um-item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 0; border-radius: 10px; background: none; font: inherit; font-size: 14px; font-weight: 500; text-align: left; color: #222; cursor: pointer; }
+.um-item { width: 100%; white-space: nowrap; display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 0; border-radius: 10px; background: none; font: inherit; font-size: 14px; font-weight: 500; text-align: left; color: #222; cursor: pointer; }
 .um-item:hover { background: #f3f4ee; } .um-item svg { color: #5b6b60; flex: none; }
 .um-danger, .um-danger svg { color: #c0392b; } .um-danger:hover { background: #fdeceb; }
 .um-sep { height: 1px; background: rgba(0, 0, 0, .07); margin: 6px 4px; }
 @media (max-width: 860px) { .user-menu { display: none; } }
+
+
+

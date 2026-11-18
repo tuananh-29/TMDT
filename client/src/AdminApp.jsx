@@ -263,9 +263,9 @@ function Dashboard({ data, go, reload, loading }) {
     </section>
 
     <div className="kpi-grid">
-      <Kpi hero label="Tổng doanh thu toàn sàn" value={vnd(s.revenue)} icon={Banknote} color="linear-gradient(135deg,#3f8564,#2f6b4f)"
+      <Kpi hero label="Tổng doanh thu toàn sàn" value={vnd(s.revenue)} icon={Banknote} color="linear-gradient(135deg,#6fd6a8,#57CC99)"
         foot={<span className="tag tag-green"><TrendingUp size={13} /> GMV Tích Lũy</span>} footRight="Toàn bộ giao dịch hoàn tất" />
-      <Kpi label="Tổng người dùng" value={num(s.users)} icon={Users} color="linear-gradient(135deg,#5b7f6a,#3f6350)"
+      <Kpi label="Tổng người dùng" value={num(s.users)} icon={Users} color="linear-gradient(135deg,#7bd9b1,#57CC99)"
         foot={<span className="tag tag-indigo"><Check size={13} /> {num(users.filter(u => !u.banned).length)} Hoạt động</span>} footRight="Khách hàng & Seller" />
       <Kpi label="Nhà bán hàng (Sellers)" value={num(sellers)} icon={Store} color="linear-gradient(135deg,#4f8f98,#357077)"
         foot={<span className="tag tag-cyan"><ShieldCheck size={13} /> {num(sellers)} Đang bán</span>} footRight="Người có tin đăng" />
@@ -377,8 +377,8 @@ function Fees({ data }) {
   const gmv = done.reduce((a, o) => a + (o.total || 0), 0), fee = Math.round(gmv * rate / 100);
   return (<>
     <div className="kpi-grid kpi-grid-3">
-      <Kpi label="GMV hoàn tất" value={vnd(gmv)} icon={Banknote} color="linear-gradient(135deg,#3f8564,#2f6b4f)" foot={<span className="tag tag-green">{done.length} đơn</span>} />
-      <Kpi label={`Phí sàn ước tính (${rate}%)`} value={vnd(fee)} icon={Percent} color="linear-gradient(135deg,#5b7f6a,#3f6350)" foot={<span className="tag tag-indigo">Doanh thu nền tảng</span>} />
+      <Kpi label="GMV hoàn tất" value={vnd(gmv)} icon={Banknote} color="linear-gradient(135deg,#6fd6a8,#57CC99)" foot={<span className="tag tag-green">{done.length} đơn</span>} />
+      <Kpi label={`Phí sàn ước tính (${rate}%)`} value={vnd(fee)} icon={Percent} color="linear-gradient(135deg,#7bd9b1,#57CC99)" foot={<span className="tag tag-indigo">Doanh thu nền tảng</span>} />
       <Kpi label="Người bán trả phí" value={num(by.length)} icon={Store} color="linear-gradient(135deg,#4f8f98,#357077)" foot={<span className="tag tag-cyan">Có đơn hoàn tất</span>} />
     </div>
     <Card title="Biểu phí hoa hồng" sub="Tỷ lệ chỉ dùng để ước tính tại trình duyệt này (backend chưa lưu cấu hình phí)."
@@ -487,9 +487,9 @@ function Finance({ data }) {
   const gmv = sum(done);
   return (<>
     <div className="kpi-grid kpi-grid-3">
-      <Kpi hero label="GMV tích lũy" value={vnd(gmv)} icon={Banknote} color="linear-gradient(135deg,#3f8564,#2f6b4f)" foot={<span className="tag tag-green">{done.length} đơn hoàn tất</span>} />
+      <Kpi hero label="GMV tích lũy" value={vnd(gmv)} icon={Banknote} color="linear-gradient(135deg,#6fd6a8,#57CC99)" foot={<span className="tag tag-green">{done.length} đơn hoàn tất</span>} />
       <Kpi label="Giá trị đang xử lý" value={vnd(sum(open))} icon={Wallet} color="linear-gradient(135deg,#d9a441,#b7791f)" foot={<span className="tag tag-amber">{open.length} đơn mở</span>} />
-      <Kpi label="Giá trị đơn trung bình" value={vnd(done.length ? gmv / done.length : 0)} icon={TrendingUp} color="linear-gradient(135deg,#5b7f6a,#3f6350)" foot={<span className="tag tag-indigo">Đơn hoàn tất</span>} />
+      <Kpi label="Giá trị đơn trung bình" value={vnd(done.length ? gmv / done.length : 0)} icon={TrendingUp} color="linear-gradient(135deg,#7bd9b1,#57CC99)" foot={<span className="tag tag-indigo">Đơn hoàn tất</span>} />
     </div>
     <div className="grid-2">
       <Card title="Doanh thu theo ngày" sub="30 ngày gần nhất"><RevenueChart orders={data.orders} /></Card>
@@ -572,3 +572,6 @@ function Logs({ data, q }) {
     </Card>
   );
 }
+
+
+

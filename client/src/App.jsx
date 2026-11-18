@@ -30,15 +30,15 @@ function Home() {
         <div className="hero-shade" />
         <div className="hero-copy">
           <div className="eyebrow hero-eyebrow"><span className="eyebrow-dot" />Chợ đồ cũ tử tế</div>
-          <h1 id="hero-title">Món đồ cũ.<br /><em>Niềm vui mới.</em></h1>
-          <p>Mua bán những món đồ có câu chuyện —<br className="desktop-break" /> dễ dàng, an tâm và có trách nhiệm hơn.</p>
+          <h1 id="hero-title">Món đồ cũ. <em>Niềm vui mới.</em></h1>
+          <p>Mua bán những món đồ có câu chuyện — dễ dàng, an tâm và có trách nhiệm hơn.</p>
           <div className="hero-actions">
             <button className="button button-coral" onClick={() => pickCategory('')}>Khám phá ngay <ArrowRight size={17} /></button>
             <button className="hero-link" onClick={() => go('post')}>Bắt đầu bán <ArrowUpRight size={16} /></button>
           </div>
           <div className="hero-proof"><span><strong>{latest.total}</strong> tin đang rao bán</span><span className="proof-star"><ShieldCheck size={14} /> Tin đã được duyệt</span></div>
         </div>
-        <div className="hero-stamp"><Recycle size={18} /><span>Yêu đồ cũ<br /><strong>thêm một chút</strong></span></div>
+        <div className="hero-stamp"><Recycle size={18} /><span>Yêu đồ cũ <strong>thêm một chút</strong></span></div>
       </section>
 
       <section className="trust-row" aria-label="Cam kết">
@@ -82,11 +82,11 @@ function Home() {
       <section className="sell-banner">
         <div className="sell-banner-content">
           <span className="sell-kicker"><Sparkles size={14} /> Một vòng đời mới bắt đầu từ bạn</span>
-          <h2>Tủ đồ gọn hơn.<br /><em>Ví tiền vui hơn.</em></h2>
+          <h2>Tủ đồ gọn hơn. <em>Ví tiền vui hơn.</em></h2>
           <p>Đăng món đồ bạn không còn dùng. Biết đâu, đó lại là món đồ ai đó đang tìm.</p>
           <button className="button button-light" onClick={() => go('post')}>Đăng bán miễn phí <ArrowRight size={16} /></button>
         </div>
-        <div className="sell-banner-art" aria-hidden="true"><div className="sell-art-circle"><Shirt size={46} strokeWidth={1.2} /><span className="sell-art-spark"><Check size={18} /></span></div><div className="sell-art-note">đồ tốt<br />đi tiếp nhé</div></div>
+        <div className="sell-banner-art" aria-hidden="true"><div className="sell-art-circle"><Shirt size={46} strokeWidth={1.2} /><span className="sell-art-spark"><Check size={18} /></span></div><div className="sell-art-note">đồ tốt đi tiếp nhé</div></div>
       </section>
 
       {popular.length > 0 && (
@@ -394,7 +394,7 @@ function Auth() {
                 <label className="form-field"><span>Số điện thoại</span><input value={f.phone} onChange={set('phone')} placeholder="0987654321" /></label>
               </div>
             </>}
-            <label className="form-field"><span>{reg ? 'Tên đăng nhập' : 'Tên đăng nhập hoặc Email'} <b>*</b></span><input autoCapitalize="none" value={f.username} onChange={set('username')} placeholder="VD: nguoiban" /></label>
+            <label className="form-field"><span>{reg ? 'Tên đăng nhập' : 'Tên đăng nhập hoặc Email'} <b>*</b></span><input autoCapitalize="none" value={f.username} onChange={set('username')} placeholder="VD: nguoidung" /></label>
             <label className="form-field"><span>Mật khẩu <b>*</b></span><input type="password" value={f.password} onChange={set('password')} onKeyDown={e => e.key === 'Enter' && submit()} /></label>
             <button className="button button-green button-block" onClick={submit}>{reg ? 'Tạo tài khoản' : 'Đăng nhập'} <ArrowRight size={16} /></button>
           </div>
@@ -402,8 +402,7 @@ function Auth() {
           <div className="demo-accounts">
             <b>Tài khoản test:</b><br />
             Admin: <code>admin</code> / <code>admin123</code><br />
-            Người bán: <code>nguoiban</code> / <code>123456</code><br />
-            Người mua: <code>nguoimua</code> / <code>123456</code>
+            Người dùng: <code>nguoidung</code> / <code>123456</code>
           </div>
         </div>
       </div>
@@ -557,7 +556,7 @@ export default function App() {
           <div className="footer-inner page-wrap">
             <div className="footer-brand">
               <button className="brand-lockup footer-lockup" onClick={() => go('home')}><Brand /></button>
-              <p>Đồ tốt tìm đúng người.<br />Mua bán tử tế, sống xanh mỗi ngày.</p>
+              <p>Đồ tốt tìm đúng người. Mua bán tử tế, sống xanh mỗi ngày.</p>
             </div>
             <div className="footer-links">
               <div><strong>Khám phá</strong><button onClick={() => pickCategory('')}>Mua sắm</button><button onClick={() => need() && go('post')}>Đăng bán</button><button onClick={() => go('fav')}>Yêu thích</button></div>
@@ -583,3 +582,6 @@ export default function App() {
     </Ctx.Provider>
   );
 }
+
+
+

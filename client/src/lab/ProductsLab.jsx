@@ -50,3 +50,6 @@ class ProductsLab extends React.Component {
 }
 
 export default ProductsLab;
+
+
+

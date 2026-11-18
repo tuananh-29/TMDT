@@ -1,6 +1,6 @@
 const m = require('mongoose'), S = m.Schema, ref = r => ({ type: S.Types.ObjectId, ref: r }), t = { timestamps: true };
 
-exports.DEFAULT_CATEGORIES = ['Xe cộ', 'Điện thoại', 'Đồ điện tử', 'Đồ gia dụng', 'Thời trang', 'Nội thất', 'Thú cưng', 'Sách & học tập'];
+exports.DEFAULT_CATEGORIES = ['Xe cộ', 'Điện thoại', 'Đồ điện tử', 'Đồ gia dụng', 'Thời trang', 'Nội thất', 'Thú cưng', 'Sách & học tập', 'Thể thao', 'Mẹ & bé'];
 exports.CONDITIONS = ['Mới 99%', 'Như mới', 'Đã dùng', 'Có xước/lỗi'];
 
 exports.Category = m.model('Category', new S({
@@ -78,3 +78,6 @@ exports.Log = m.model('Log', new S({
   ref: String,
   data: S.Types.Mixed
 }, t));
+
+
+

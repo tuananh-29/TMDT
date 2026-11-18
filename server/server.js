@@ -20,102 +20,42 @@ app.use((e, req, res, next) => {
 });
 
 async function seedDefaultData() {
-  // 1. Tạo danh mục mặc định nếu chưa có
-  if (await M.Category.countDocuments() === 0) {
-    await M.Category.insertMany(M.DEFAULT_CATEGORIES.map(name => ({ name })));
-    console.log('✅ Đã khởi tạo danh mục mặc định');
-  }
+  // 1. Danh mục: bổ sung các danh mục mặc định còn thiếu
+  await M.Category.bulkWrite(M.DEFAULT_CATEGORIES.map(name => ({
+    updateOne: { filter: { name }, update: { $setOnInsert: { name } }, upsert: true }
+  })));
 
-  // 2. Tạo tài khoản Admin & User mẫu nếu chưa có
+  // 2. Hai tài khoản mẫu: 1 admin (quản trị) và 1 người dùng (đăng bán, mua hàng)
   const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
-  let admin = await M.User.findOne({ role: 'admin' });
-  if (!admin) {
-    admin = await M.User.create({
-      username: 'admin',
-      email: 'admin@chodocu.vn',
-      name: 'Quản Trị Viên',
-      phone: '0901234567',
-      address: 'TP. Hồ Chí Minh',
-      passwordHash: await bcrypt.hash(adminPass, 10),
-      role: 'admin'
-    });
-    console.log(`✅ Đã tạo tài khoản Admin: username="admin" | password="${adminPass}"`);
-  }
+  const ensureUser = async (data, password) => (await M.User.findOne({ username: data.username })) ||
+    (console.log(`✅ Đã tạo tài khoản: username="${data.username}" | password="${password}"`),
+      M.User.create({ ...data, passwordHash: await bcrypt.hash(password, 10) }));
+  await ensureUser({ username: 'admin', email: 'admin@chodocu.vn', name: 'Quản trị viên', phone: '0900000000', address: 'TP. Hồ Chí Minh', role: 'admin' }, adminPass);
+  const owner = await ensureUser({ username: 'nguoidung', email: 'nguoidung@chodocu.vn', name: 'Nguyễn Minh Anh', phone: '0901234567', address: 'TP. Hồ Chí Minh', role: 'user' }, '123456');
 
-  let seller = await M.User.findOne({ username: 'nguoiban' });
-  if (!seller) {
-    seller = await M.User.create({
-      username: 'nguoiban',
-      email: 'nguoiban@gmail.com',
-      name: 'Nguyễn Văn Bán',
-      phone: '0987654321',
-      address: 'Tân Bình, TP. Hồ Chí Minh',
-      passwordHash: await bcrypt.hash('123456', 10),
-      role: 'user'
-    });
-  }
-
-  let buyer = await M.User.findOne({ username: 'nguoimua' });
-  if (!buyer) {
-    buyer = await M.User.create({
-      username: 'nguoimua',
-      email: 'nguoimua@gmail.com',
-      name: 'Trần Thị Mua',
-      phone: '0912345678',
-      address: 'Quận 1, TP. Hồ Chí Minh',
-      passwordHash: await bcrypt.hash('123456', 10),
-      role: 'user'
-    });
-  }
-
-  // 3. Tạo sản phẩm mẫu nếu DB trống
-  if (await M.Product.countDocuments() === 0) {
-    const port = process.env.PORT || 5000;
-    const host = `http://localhost:${port}`;
-    await M.Product.insertMany([
-      {
-        title: 'Bộ Boardgame Catan Bản Quốc Tế (Còn đủ phụ kiện)',
-        category: 'Sách & học tập',
-        price: 450000,
-        condition: 'Như mới',
-        percentNew: 95,
-        location: 'TP. Hồ Chí Minh',
-        phone: '0987654321',
-        description: 'Bộ Catan mới chơi 2 lần, thẻ bài đã bọc sleeve kỹ, đầy đủ quân gỗ và hướng dẫn.',
-        images: [`${host}/uploads/catan_1.jpg`],
-        seller: seller._id,
-        status: 'approved',
-        vip: true,
-        vipUntil: new Date(Date.now() + 7 * 864e5)
-      },
-      {
-        title: 'Xe đạp thể thao khung hợp kim nhôm siêu nhẹ',
-        category: 'Xe cộ',
-        price: 2800000,
-        condition: 'Đã dùng',
-        percentNew: 85,
-        location: 'TP. Hồ Chí Minh',
-        phone: '0987654321',
-        description: 'Xe đạp chạy êm, bộ đề Shimano 21 tốc độ hoạt động mượt mà, phanh đĩa an toàn.',
-        images: [`${host}/uploads/xd_1.jpg`, `${host}/uploads/xd_2.jpg`],
-        seller: seller._id,
-        status: 'approved'
-      },
-      {
-        title: 'Áo Hoodie Nỉ Bông Form Rộng Unisex',
-        category: 'Thời trang',
-        price: 180000,
-        condition: 'Như mới',
-        percentNew: 90,
-        location: 'Hà Nội',
-        phone: '0987654321',
-        description: 'Áo hoodie chất nỉ dày dặn, không xù lông, mặc ấm và lên form cực chuẩn.',
-        images: [`${host}/uploads/hd_1.jpg`],
-        seller: seller._id,
-        status: 'pending'
-      }
+  // 3. Dọn 2 tài khoản mẫu cũ (nguoiban, nguoimua) vì nay chỉ còn 1 người dùng mẫu
+  const old = await M.User.find({ username: { $in: ['nguoiban', 'nguoimua'] } }).select('_id');
+  if (old.length) {
+    const ids = old.map(u => u._id);
+    const prods = await M.Product.find({ seller: { $in: ids } }).select('_id');
+    const orders = await M.Order.find({ $or: [{ buyer: { $in: ids } }, { seller: { $in: ids } }] }).select('_id');
+    await Promise.all([
+      M.Review.deleteMany({ $or: [{ from: { $in: ids } }, { to: { $in: ids } }, { order: { $in: orders.map(o => o._id) } }] }),
+      M.Report.deleteMany({ $or: [{ by: { $in: ids } }, { product: { $in: prods.map(p => p._id) } }] }),
+      M.Order.deleteMany({ _id: { $in: orders.map(o => o._id) } }),
+      M.Cart.deleteMany({ user: { $in: ids } }),
+      M.Product.deleteMany({ _id: { $in: prods.map(p => p._id) } }),
+      M.User.deleteMany({ _id: { $in: ids } })
     ]);
-    console.log('✅ Đã tạo sản phẩm mẫu (bao gồm cả tin đang bán & tin chờ Admin duyệt)');
+    console.log('🧹 Đã xóa tài khoản mẫu cũ (nguoiban, nguoimua) và dữ liệu liên quan');
+  }
+
+  // 4. Sản phẩm mẫu (30 tin, 10 danh mục, có ảnh sinh sẵn) nếu DB còn trống
+  if (await M.Product.countDocuments() === 0) {
+    const host = process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 5000}`;
+    const items = require('./seed-data').buildProducts(host, path.join(__dirname, 'uploads'), owner._id);
+    await M.Product.insertMany(items);
+    console.log(`✅ Đã tạo ${items.length} sản phẩm mẫu (đang bán, đã bán, chờ duyệt, VIP)`);
   }
 }
 
@@ -129,3 +69,6 @@ mongoose.connect(MONGO_URI).then(async () => {
   console.error('❌ Lỗi kết nối MongoDB:', e.message);
   process.exit(1);
 });
+
+
+

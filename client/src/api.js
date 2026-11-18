@@ -14,3 +14,6 @@ export const api = async (path, { method = 'GET', body, form } = {}) => {
   if (!r.ok) throw new Error(d.message || 'Có lỗi xảy ra');
   return d;
 };
+
+
+

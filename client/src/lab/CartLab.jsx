@@ -73,3 +73,6 @@ class CartLab extends React.Component {
 }
 
 export default CartLab;
+
+
+
