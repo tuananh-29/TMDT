@@ -26,6 +26,7 @@ function Home() {
   return (
     <main className="home-page page-wrap">
       <section className="hero-card" aria-labelledby="hero-title">
+        <img className="hero-image" src="/images/marketplace-hero.png" alt="Những món đồ tuyển chọn đang chờ một vòng đời mới" />
         <div className="hero-shade" />
         <div className="hero-copy">
           <div className="eyebrow hero-eyebrow"><span className="eyebrow-dot" />Chợ đồ cũ tử tế</div>
@@ -368,31 +369,40 @@ function Favorites() {
 /* ================= ĐĂNG NHẬP / ĐĂNG KÝ ================= */
 function Auth() {
   const { setMe, go, toast, run } = useApp();
-  const [f, setF] = useState({ username: '', password: '' });
+  const [reg, setReg] = useState(false);
+  const [f, setF] = useState({ username: '', email: '', phone: '', password: '', name: '' });
   const set = k => e => setF({ ...f, [k]: e.target.value });
   const submit = () => run(async () => {
-    const r = await api('/auth/login', { method: 'POST', body: f });
+    const r = await api('/auth/' + (reg ? 'register' : 'login'), { method: 'POST', body: f });
     localStorage.setItem('tk', r.token);
     setMe(r.user);
     toast('Xin chào ' + r.user.name);
-    go('home');
+    go(r.user.role === 'admin' ? 'admin' : 'home');
   });
   return (
     <main className="page-wrap">
       <div className="narrow-wrap">
         <div className="form-card">
-          <div className="eyebrow section-eyebrow" style={{ marginBottom: 8 }}>Chào mừng trở lại</div>
-          <h1>Đăng nhập</h1>
-          <p className="muted-note" style={{ marginBottom: 18 }}>Đăng nhập để mua, bán và quản lý đơn hàng.</p>
-          <form className="form-fields" onSubmit={e => { e.preventDefault(); submit(); }}>
-            <label className="form-field"><span>Tên đăng nhập <b>*</b></span><input autoCapitalize="none" autoComplete="username" value={f.username} onChange={set('username')} placeholder="admin" /></label>
-            <label className="form-field"><span>Mật khẩu <b>*</b></span><input type="password" autoComplete="current-password" value={f.password} onChange={set('password')} /></label>
-            <button className="button button-green button-block" type="submit">Đăng nhập <ArrowRight size={16} /></button>
-          </form>
+          <div className="eyebrow section-eyebrow" style={{ marginBottom: 8 }}>{reg ? 'Tham gia cộng đồng' : 'Chào mừng trở lại'}</div>
+          <h1>{reg ? 'Tạo tài khoản' : 'Đăng nhập'}</h1>
+          <p className="muted-note" style={{ marginBottom: 18 }}>{reg ? 'Chỉ mất một phút để bắt đầu mua bán.' : 'Đăng nhập để mua, bán và quản lý đơn hàng.'}</p>
+          <div className="form-fields">
+            {reg && <>
+              <label className="form-field"><span>Họ và tên <b>*</b></span><input value={f.name} onChange={set('name')} placeholder="Nguyễn Văn A" /></label>
+              <div className="form-field-row">
+                <label className="form-field"><span>Email</span><input type="email" value={f.email} onChange={set('email')} placeholder="email@gmail.com" /></label>
+                <label className="form-field"><span>Số điện thoại</span><input value={f.phone} onChange={set('phone')} placeholder="0987654321" /></label>
+              </div>
+            </>}
+            <label className="form-field"><span>{reg ? 'Tên đăng nhập' : 'Tên đăng nhập hoặc Email'} <b>*</b></span><input autoCapitalize="none" value={f.username} onChange={set('username')} placeholder="VD: nguoidung" /></label>
+            <label className="form-field"><span>Mật khẩu <b>*</b></span><input type="password" value={f.password} onChange={set('password')} onKeyDown={e => e.key === 'Enter' && submit()} /></label>
+            <button className="button button-green button-block" onClick={submit}>{reg ? 'Tạo tài khoản' : 'Đăng nhập'} <ArrowRight size={16} /></button>
+          </div>
+          <p className="switch-line">{reg ? 'Đã có tài khoản?' : 'Chưa có tài khoản?'} <button className="link-btn" onClick={() => setReg(!reg)}>{reg ? 'Đăng nhập ngay' : 'Đăng ký mới'}</button></p>
           <div className="demo-accounts">
-            <b>Tài khoản duy nhất của hệ thống:</b><br />
-            Tên đăng nhập: <code>admin</code><br />
-            Mật khẩu: <code>admin123</code>
+            <b>Tài khoản test:</b><br />
+            Admin: <code>admin</code> / <code>admin123</code><br />
+            Người dùng: <code>nguoidung</code> / <code>123456</code>
           </div>
         </div>
       </div>
@@ -440,7 +450,7 @@ function UserMenu() {
             <Item icon={LogOut} danger onClick={logout}>Đăng xuất</Item>
           </>) : (<>
             <div className="um-head um-guest"><div><b>Chào bạn!</b><small>Đăng nhập để mua, bán và quản lý đơn.</small></div></div>
-            <Item icon={UserRound} onClick={() => go('auth')}>Đăng nhập</Item>
+            <Item icon={UserRound} onClick={() => go('auth')}>Đăng nhập / Đăng ký</Item>
           </>)}
         </div>
       )}

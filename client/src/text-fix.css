@@ -1,0 +1,6 @@
+/* Chỉ xử lý chữ bị tách dòng xấu – KHÔNG chứa màu sắc nào */
+h1, h2, h3, h4, strong, .product-title, .category-name, .brand-name { word-break: normal; overflow-wrap: break-word; hyphens: none; text-wrap: balance; }
+p, li, span, label, small { word-break: normal; overflow-wrap: break-word; hyphens: none; }
+p, .section-subtitle { text-wrap: pretty; }
+.brand-name, .button, .header-sell-button, .text-link { white-space: nowrap; }
+.hero-copy h1 em, .sell-banner h2 em { display: inline; font-style: normal; }

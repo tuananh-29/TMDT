@@ -25,23 +25,15 @@ async function seedDefaultData() {
     updateOne: { filter: { name }, update: { $setOnInsert: { name } }, upsert: true }
   })));
 
-  // 2. Hệ thống chỉ có DUY NHẤT một tài khoản (admin): vừa mua, bán, vừa quản trị
+  // 2. Hai tài khoản mẫu: 1 admin (quản trị) và 1 người dùng (đăng bán, mua hàng)
   const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
-  let owner = await M.User.findOne({ username: 'admin' });
-  if (!owner) {
-    owner = await M.User.create({
-      username: 'admin',
-      email: 'admin@chodocu.vn',
-      name: 'Chủ Chợ Đồ Cũ',
-      phone: '0901234567',
-      address: 'TP. Hồ Chí Minh',
-      passwordHash: await bcrypt.hash(adminPass, 10),
-      role: 'admin'
-    });
-    console.log(`✅ Đã tạo tài khoản duy nhất: username="admin" | password="${adminPass}"`);
-  }
+  const ensureUser = async (data, password) => (await M.User.findOne({ username: data.username })) ||
+    (console.log(`✅ Đã tạo tài khoản: username="${data.username}" | password="${password}"`),
+      M.User.create({ ...data, passwordHash: await bcrypt.hash(password, 10) }));
+  await ensureUser({ username: 'admin', email: 'admin@chodocu.vn', name: 'Quản trị viên', phone: '0900000000', address: 'TP. Hồ Chí Minh', role: 'admin' }, adminPass);
+  const owner = await ensureUser({ username: 'nguoidung', email: 'nguoidung@chodocu.vn', name: 'Nguyễn Minh Anh', phone: '0901234567', address: 'TP. Hồ Chí Minh', role: 'user' }, '123456');
 
-  // 3. Dọn các tài khoản mẫu cũ (nguoiban, nguoimua) cùng dữ liệu của chúng
+  // 3. Dọn 2 tài khoản mẫu cũ (nguoiban, nguoimua) vì nay chỉ còn 1 người dùng mẫu
   const old = await M.User.find({ username: { $in: ['nguoiban', 'nguoimua'] } }).select('_id');
   if (old.length) {
     const ids = old.map(u => u._id);
