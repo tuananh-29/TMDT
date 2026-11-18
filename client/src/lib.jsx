@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { Heart, MapPin, ShieldCheck, Star, Shirt, Smartphone, Sofa, BookOpen, Bike, Laptop, PawPrint, Refrigerator, Package } from 'lucide-react';
+import { Heart, MapPin, ShieldCheck, Star, Shirt, Smartphone, Sofa, BookOpen, Bike, Laptop, PawPrint, Refrigerator, Package, Dumbbell, Baby } from 'lucide-react';
 import { API_BASE } from './api';
 
 export const Ctx = createContext();
@@ -31,9 +31,11 @@ export const catIcon = name => {
   if (/nội thất|nhà/.test(n)) return Sofa;
   if (/thú cưng/.test(n)) return PawPrint;
   if (/sách|học/.test(n)) return BookOpen;
+  if (/thể thao/.test(n)) return Dumbbell;
+  if (/mẹ|bé/.test(n)) return Baby;
   return Package;
 };
-export const CAT_COLORS = ['#f2e9dc', '#e5ede5', '#f2e9dc', '#ece9e1', '#e5ede5', '#f3e8df'];
+export const CAT_COLORS = ['#f2e9dc', '#e4f7ee', '#f2e9dc', '#ece9e1', '#e4f7ee', '#f3e8df'];
 
 export const Thumb = ({ p }) => p.images && p.images[0]
   ? <img src={imgUrl(p.images[0])} alt={p.title || ''} loading="lazy" />
@@ -91,3 +93,6 @@ export const Stars = ({ avg, count }) => (
     ? <span><Star size={13} fill="currentColor" /> {avg} <i>·</i> {count} đánh giá</span>
     : <span>Chưa có đánh giá</span>
 );
+
+
+

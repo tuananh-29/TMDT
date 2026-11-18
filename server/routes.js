@@ -57,6 +57,7 @@ router.get('/categories', w(async (_, res) => {
 
 // ===== Auth =====
 router.post('/auth/register', w(async (req, res) => {
+  if (process.env.ALLOW_REGISTER !== 'true') bad('Hệ thống chỉ dùng một tài khoản duy nhất nên đã tắt đăng ký mới', 403);
   const { username = '', email = '', password = '', name = '', phone = '', address = '' } = req.body;
   const u = String(username || email.split('@')[0]).trim().toLowerCase();
   if (!/^[a-z0-9_.]{3,30}$/.test(u)) bad('Tên đăng nhập 3-30 ký tự: a-z, 0-9, _');
@@ -501,3 +502,6 @@ admin.delete('/reviews/:id', w(async (req, res) => {
 }));
 
 module.exports = router;
+
+
+

@@ -15,3 +15,6 @@ export const isLoggedIn = () => !!localStorage.getItem('tk');
 
 // Chưa đăng nhập → chuyển sang trang đăng nhập của site chính
 export const goLogin = () => { window.location.href = '/#auth'; };
+
+
+

@@ -17,3 +17,6 @@ exports.auth = async (req, res, next) => {
 exports.role = r => (req, res, next) => req.user.role === r ? next() : res.status(403).json({ message: 'Không đủ quyền truy cập' });
 exports.w = f => (q, s, n) => f(q, s, n).catch(n);
 exports.SECRET = SECRET;
+
+
+

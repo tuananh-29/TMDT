@@ -18,10 +18,9 @@ npm install
 npm run dev
 ```
 - Server sẽ chạy tại `http://localhost:5000`.
-- Lần đầu khởi động, hệ thống tự động tạo sẵn **Danh mục**, **3 Sản phẩm mẫu** (kèm ảnh thật trong `server/uploads`) và **3 Tài khoản mẫu**:
-  - **Admin:** Tên đăng nhập `admin` / Mật khẩu `admin123`
-  - **Người bán:** Tên đăng nhập `nguoiban` / Mật khẩu `123456`
-  - **Người mua:** Tên đăng nhập `nguoimua` / Mật khẩu `123456`
+- Lần đầu khởi động, hệ thống tự động tạo sẵn **Danh mục**, **30 Sản phẩm mẫu** (kèm ảnh thật trong `server/uploads`) và **3 Tài khoản mẫu**:
+  - **Tài khoản duy nhất:** Tên đăng nhập `admin` / Mật khẩu `admin123` (vừa mua, bán, vừa quản trị). Đăng ký tài khoản mới đã tắt (đặt `ALLOW_REGISTER=true` trong `server/.env` nếu muốn mở lại).
+  - Hai tài khoản mẫu cũ `nguoiban`, `nguoimua` sẽ tự bị xóa khi khởi động server.
 
 ### Bước 2: Chạy Frontend (`client`)
 Mở Terminal 2:
@@ -71,3 +70,15 @@ Chạy `npm run dev` trong `client`, mở **http://localhost:5173/admin.html** v
 - Không còn "Kênh người bán" / "Quản trị" trên thanh menu. Bấm **ảnh đại diện** ở góc phải header để mở menu: Hồ sơ, Đơn tôi mua, Đơn khách đặt mua, Tin đăng của tôi, Trang quản trị (chỉ admin), Đăng xuất. Chưa đăng nhập thì hiện Đăng nhập / Đăng ký.
 - Trang Hồ sơ (`#mine/profile|products|buy|sell`) gom: thông tin cá nhân, tin đăng, đơn mua, đơn bán.
 - Nút **Đăng bán** ở header cho bất kỳ người dùng nào.
+
+
+
+
+
+---
+
+## 🎨 Bản nâng cấp
+- Chỉ đổi màu xanh lá thành **#57CC99**, các màu khác (nền kem, san hô, vàng...) giữ nguyên; `client/src/style.css` được viết lại.
+- Chữ dùng font Be Vietnam Pro, bỏ các chỗ xuống dòng cứng nên tiêu đề không còn bị tách dòng xấu.
+- Dữ liệu mẫu: 30 tin / 10 danh mục (thêm *Thể thao*, *Mẹ & bé*), ảnh SVG tự sinh vào `server/uploads`.
+- Muốn nạp lại dữ liệu mẫu: xóa database `chodocu` rồi chạy lại server.

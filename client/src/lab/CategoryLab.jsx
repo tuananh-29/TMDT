@@ -57,3 +57,6 @@ class CategoryLab extends React.Component {
 }
 
 export default CategoryLab;
+
+
+

@@ -245,3 +245,6 @@ const s = StyleSheet.create({
   gia: { alignSelf: 'flex-start', backgroundColor: C.tag, color: C.teal, fontWeight: '800', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, marginTop: 4 },
   tabs: { flexDirection: 'row', backgroundColor: C.ink, borderTopWidth: 1, borderTopColor: '#2c3340' }
 });
+
+
+

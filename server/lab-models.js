@@ -26,3 +26,6 @@ exports.CartLab = m.models.CartLab || m.model('CartLab', new S({
     image: String
   }]
 }, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }), 'cart');
+
+
+

@@ -169,3 +169,6 @@ class DetailLab extends React.Component {
 }
 
 export default DetailLab;
+
+
+
