@@ -301,6 +301,10 @@ router.patch('/orders/:id/status', auth, w(async (req, res) => {
   if (side === 'buyer' && o.status === 'confirmed' && o.shipping.method === 'meet') ok = ['completed'];
   const to = req.body.status;
   if (!ok.includes(to)) bad('Không thể chuyển trạng thái đơn này');
+  if (o.payment === 'vnpay') {
+    if (o.paymentStatus !== 'paid' && side === 'seller') bad('Đơn VNPAY chưa được khách thanh toán');
+    if (o.paymentStatus === 'paid' && to === 'cancelled') bad('Đơn đã thanh toán qua VNPAY, cần hoàn tiền thủ công – vui lòng liên hệ quản trị viên');
+  }
   const from = o.status;
   o.status = to;
   await o.save();
@@ -501,6 +505,3 @@ admin.delete('/reviews/:id', w(async (req, res) => {
 }));
 
 module.exports = router;
-
-
-

@@ -5,6 +5,7 @@ import { useApp, LOCS, money, ago, Thumb } from './lib.jsx';
 
 const ST = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', shipping: 'Đang giao', completed: 'Hoàn tất', cancelled: 'Đã hủy' };
 const ST_CLASS = { pending: 'status-pending', confirmed: 'status-info', shipping: 'status-info', completed: '', cancelled: 'status-cancelled' };
+const payTag = o => o.payment !== 'vnpay' ? '' : o.paymentStatus === 'paid' ? ' (Đã thanh toán)' : o.paymentStatus === 'failed' ? ' (Thanh toán thất bại)' : ' (Chờ thanh toán)';
 const Pill = ({ cls = '', children }) => <span className={'status-pill ' + cls}><i />{children}</span>;
 
 const Need = () => {
@@ -61,7 +62,7 @@ export function Cart() {
                     <label className="form-field"><span>Hình thức nhận hàng</span>
                       <select value={f.shippingMethod} onChange={set('shippingMethod')}><option value="meet">Tự gặp trực tiếp (miễn phí)</option><option value="standard">Giao tiêu chuẩn (+30.000đ)</option><option value="express">Giao nhanh (+50.000đ)</option></select></label>
                     <label className="form-field"><span>Thanh toán</span>
-                      <select value={f.payment} onChange={set('payment')}><option value="cod">Thanh toán khi nhận hàng (COD)</option><option value="bank">Chuyển khoản (mô phỏng)</option><option value="wallet">Ví điện tử (mô phỏng)</option></select></label>
+                      <select value={f.payment} onChange={set('payment')}><option value="cod">Thanh toán khi nhận hàng (COD)</option><option value="vnpay">Thanh toán online qua VNPAY (ATM / QR / Thẻ)</option></select></label>
                   </div>
                   {f.shippingMethod !== 'meet' && <label className="form-field"><span>Địa chỉ nhận hàng</span><input value={f.address} onChange={set('address')} placeholder="Số nhà, đường, phường/xã, quận/huyện…" /></label>}
                 </div>
@@ -72,7 +73,7 @@ export function Cart() {
               <div className="summary-line"><span>Tạm tính ({items.length} món)</span><span>{money(sub)}</span></div>
               <div className="summary-line"><span>Phí giao hàng</span><span>{fee ? money(fee) : 'Miễn phí'}</span></div>
               <div className="summary-total"><span>Tổng cộng</span><strong>{money(sub + fee)}</strong></div>
-              <button className="button button-green button-block" onClick={() => run(async () => { await api('/orders', { method: 'POST', body: f }); await refreshCart(); toast('Đặt hàng thành công!'); go('orders'); })}>Xác nhận đặt hàng <ArrowRight size={16} /></button>
+              <button className="button button-green button-block" onClick={() => run(async () => { if (f.payment === 'vnpay') { const r = await api('/orders/create_payment_url', { method: 'POST', body: { ...f, language: 'vn', bankCode: '' } }); window.location.href = r.paymentUrl; return; } await api('/orders', { method: 'POST', body: f }); await refreshCart(); toast('Đặt hàng thành công!'); go('orders'); })}>Xác nhận đặt hàng <ArrowRight size={16} /></button>
               <p className="detail-safe-note"><ShieldCheck size={13} /> Không thanh toán trước khi kiểm tra hàng.</p>
             </aside>
           </div>
@@ -106,7 +107,7 @@ export function Orders({ embedded = false }) {
                 {side === 'buyer' ? `Người bán: ${o.seller?.name || ''} (@${o.seller?.username || ''})` : `Người mua: ${o.buyer?.name || ''} · SĐT: ${o.shipping?.phone || o.buyer?.phone || 'Chưa có'}`} · {ago(o.createdAt)}
               </div>
               {o.items.map((i, k) => <div className="order-item" key={k}><span>{i.title}</span><b>{money(i.price)}</b></div>)}
-              <div className="order-meta" style={{ marginTop: 8 }}>Giao nhận: {o.shipping.method === 'meet' ? 'Gặp trực tiếp' : o.shipping.address} · Thanh toán: {o.payment.toUpperCase()} · Phí giao: {money(o.shipping.fee)}</div>
+              <div className="order-meta" style={{ marginTop: 8 }}>Giao nhận: {o.shipping.method === 'meet' ? 'Gặp trực tiếp' : o.shipping.address} · Thanh toán: {o.payment.toUpperCase()}{payTag(o)} · Phí giao: {money(o.shipping.fee)}</div>
               <div className="order-total">Tổng thanh toán: {money(o.total)}</div>
               <div className="order-actions">
                 {side === 'seller' && o.status === 'pending' && <><button className="button button-green button-sm" onClick={() => st(o, 'confirmed')}>Xác nhận đơn</button><button className="button button-danger button-sm" onClick={() => st(o, 'cancelled')}>Từ chối</button></>}
@@ -233,7 +234,7 @@ function SellerOrders() {
             <div className="order-head"><strong>Mã đơn #{String(o._id).slice(-6)}</strong><Pill cls={ST_CLASS[o.status]}>{ST[o.status]}</Pill></div>
             <div className="order-meta">Người mua: {o.buyer?.name || ''} (@{o.buyer?.username || ''}) · SĐT: {o.shipping?.phone || o.buyer?.phone || 'Chưa có'} · {ago(o.createdAt)}</div>
             {o.items.map((i, k) => <div className="order-item" key={k}><span>{i.title}</span><b>{money(i.price)}</b></div>)}
-            <div className="order-meta" style={{ marginTop: 8 }}>Người nhận: {o.shipping.recipientName || o.buyer?.name} · Giao nhận: {o.shipping.method === 'meet' ? 'Gặp trực tiếp' : o.shipping.address} · Thanh toán: {o.payment.toUpperCase()} · Phí giao: {money(o.shipping.fee)}</div>
+            <div className="order-meta" style={{ marginTop: 8 }}>Người nhận: {o.shipping.recipientName || o.buyer?.name} · Giao nhận: {o.shipping.method === 'meet' ? 'Gặp trực tiếp' : o.shipping.address} · Thanh toán: {o.payment.toUpperCase()}{payTag(o)} · Phí giao: {money(o.shipping.fee)}</div>
             <div className="order-total">Tổng thanh toán: {money(o.total)}</div>
             <div className="order-actions">
               {o.status === 'pending' && <><button className="button button-green button-sm" onClick={() => st(o, 'confirmed')}>Xác nhận đơn</button><button className="button button-danger button-sm" onClick={() => st(o, 'cancelled')}>Từ chối</button></>}
@@ -326,6 +327,3 @@ export function Mine({ tab: section = 'products' }) {
     </main>
   );
 }
-
-
-
