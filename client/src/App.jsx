@@ -7,6 +7,7 @@ import {
 import { api } from './api';
 import { Ctx, useApp, LOCS, money, ago, imgUrl, stars, Avatar, ProductCard, catIcon, CAT_COLORS } from './lib.jsx';
 import { Cart, Post, Mine } from './Pages.jsx';
+import VnpayReturn from './VnpayReturn.jsx';
 
 const SORTS = [['new', 'Mới nhất'], ['lo', 'Giá thấp đến cao'], ['hi', 'Giá cao đến thấp']];
 const Brand = ({ className = '' }) => (
@@ -493,11 +494,12 @@ export default function App() {
   const pickCategory = c => { setCat(c); setQ(''); setQInput(''); go('browse'); };
   const submitSearch = e => { e.preventDefault(); setQ(qInput.trim()); setCat(''); go('browse'); };
 
-  const [r, id] = route.split('/');
+  const [r, id] = route.split('?')[0].split('/');
   const page = r === 'p' ? <Detail id={id} />
     : r === 'u' ? <User name={id} />
     : r === 'auth' ? <Auth />
     : r === 'cart' ? <Cart />
+    : r === 'vnpay_return' ? <VnpayReturn />
     : r === 'orders' ? <Mine tab="buy" />
     : r === 'mine' ? <Mine tab={id || 'products'} />
     : r === 'post' ? <Post id={id} key={id} />
@@ -582,6 +584,3 @@ export default function App() {
     </Ctx.Provider>
   );
 }
-
-
-

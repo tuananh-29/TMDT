@@ -52,6 +52,9 @@ exports.Order = m.model('Order', new S({
   items: [{ product: ref('Product'), title: String, price: Number }],
   shipping: { method: String, fee: Number, recipientName: String, phone: String, address: String },
   payment: String,
+  paymentStatus: { type: String, enum: ['unpaid', 'paid', 'failed'], default: 'unpaid' }, // dùng cho VNPAY (COD giữ mặc định)
+  paymentRef: { type: String, index: true }, // vnp_TxnRef – 1 giao dịch VNPAY có thể gồm nhiều đơn (nhiều người bán)
+  vnpay: S.Types.Mixed, // transactionNo, bankCode, payDate, responseCode…
   total: Number,
   status: { type: String, enum: ['pending', 'confirmed', 'shipping', 'completed', 'cancelled'], default: 'pending' }
 }, t));
@@ -78,6 +81,3 @@ exports.Log = m.model('Log', new S({
   ref: String,
   data: S.Types.Mixed
 }, t));
-
-
-

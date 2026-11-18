@@ -11,6 +11,7 @@ app.use('/assets', express.static(path.join(__dirname, '../client/public/assets'
 app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 
 app.get('/', (_, r) => r.send('Chợ Đồ Cũ API đang hoạt động!'));
+app.use('/api/orders', require('./vnpay').router); // VNPAY: create_payment_url, vnpay_return, vnpay_ipn
 app.use('/api', require('./routes'));
 
 app.use((e, req, res, next) => {
@@ -65,10 +66,8 @@ mongoose.connect(MONGO_URI).then(async () => {
   await seedDefaultData();
   const port = process.env.PORT || 5000;
   app.listen(port, () => console.log(`🚀 API đang chạy tại http://localhost:${port}`));
+  require('./vnpay').startSweeper(); // tự hủy đơn VNPAY quá hạn chưa thanh toán
 }).catch(e => {
   console.error('❌ Lỗi kết nối MongoDB:', e.message);
   process.exit(1);
 });
-
-
-
