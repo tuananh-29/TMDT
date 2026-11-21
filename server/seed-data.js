@@ -1,4 +1,4 @@
-// Dữ liệu mẫu cho Chợ Đồ Cũ. Ảnh được sinh ra dạng SVG (không cần internet).
+// Dữ liệu mẫu cho Chợ Đồ Cũ. Ưu tiên ảnh thật seed-X-Y.jpg trong server/uploads, nếu thiếu thì sinh ảnh SVG (không cần internet).
 const fs = require('fs'), path = require('path');
 
 // [emoji, màu nền 1, màu nền 2] theo danh mục
@@ -87,8 +87,13 @@ exports.buildProducts = (host, uploadDir, sellerId) => {
   return P.map(([title, category, price, originalPrice, condition, percentNew, location, description, status, vip, nimg], i) => {
     const images = [];
     for (let k = 0; k < nimg; k++) {
-      const name = `seed-${i + 1}-${k + 1}.svg`;
-      fs.writeFileSync(path.join(uploadDir, name), svg(category, title, k));
+      const base = `seed-${i + 1}-${k + 1}`;
+      let name = `${base}.jpg`;
+      // Có ảnh thật (.jpg) trong uploads thì dùng, chưa có thì tự sinh SVG
+      if (!fs.existsSync(path.join(uploadDir, name))) {
+        name = `${base}.svg`;
+        fs.writeFileSync(path.join(uploadDir, name), svg(category, title, k));
+      }
       images.push(`${host}/uploads/${name}`);
     }
     const created = new Date(now - (i * 7 + 1) * 3600e3 * 5);
